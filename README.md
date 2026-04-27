@@ -2,8 +2,6 @@
 
 A Python framework for aggregating fragmented government environmental compliance data into a normalized SQLite database, with cross-source entity resolution and risk scoring.
 
-This is an archived extraction. The code originated as part of a larger product that was discontinued in April 2026. The connector framework, entity resolution, and scoring methodology are the parts that may be useful to others — published as a library so the work isn't lost.
-
 > **Not for regulated environmental due diligence (Phase I ESAs), compliance attestations, lending, insurance, or any decision with material legal or financial consequences.** See [Disclaimer](#disclaimer) at the bottom.
 
 A pre-computed snapshot of the data this code produces is also published as a Hugging Face dataset:
@@ -40,12 +38,12 @@ Full source list: see `enviolations/sources/`.
 
 ## What's NOT included
 
-Deliberately omitted from the extraction:
+Deliberately out of scope for this library:
 
-- **API server** (FastAPI) — well-trodden pattern, the original product wrapped this library in a REST API; you can do the same in an afternoon.
+- **API server** (FastAPI) — well-trodden pattern; wrap the library in a REST API yourself in an afternoon if you need one.
 - **MCP server** — same reasoning.
-- **Dashboard frontend** — product-specific.
-- **CLI dispatcher** — coupled to the original product's job-orchestration layer. Write your own driver; the quick-start example below shows the pattern.
+- **Dashboard / UI** — out of scope.
+- **CLI dispatcher** — write your own driver; the quick-start below shows the pattern.
 
 ## Requirements
 
@@ -110,10 +108,10 @@ Plan around these — don't try to fix them in the mapper.
 
 ### Source-specific gotchas
 
-Caveats observed during the original product's run, surfaced here for anyone using these connectors. None are blockers; most are documented but unfixed because the project ended.
+Caveats accumulated during development. None are blockers; most are documented but unfixed.
 
 - **`epa_echo` GeoJSON endpoint is flaky.** `https://echodata.epa.gov/echo/echo_rest_services.get_geojson` periodically returns HTTP 502 Proxy Error, especially on large states (CA). The connector retries; persistent failures usually clear within an hour.
-- **`tn_tdec` may return HTTP 403** on all 5 ArcGIS endpoints (APC Permits, UST, DOR Sites, SWM Permits, GWP Complaints) when called from server-class IPs. Last successful pull from the original product's droplet was 2026-02-21; appears to be IP-based blocking or a User-Agent check. Try a residential IP or a browser-like User-Agent if you hit this.
+- **`tn_tdec` may return HTTP 403** on all 5 ArcGIS endpoints (APC Permits, UST, DOR Sites, SWM Permits, GWP Complaints) when called from server-class IPs. Last successful pull was 2026-02-21; appears to be IP-based blocking or a User-Agent check. Try a residential IP or a browser-like User-Agent if you hit this.
 - **`pa_dep_gis` Storage Tanks: numeric years in the `city` field.** For `tank-51-*` records, the upstream `MUNICIPALITY` field sometimes contains the installation year (e.g. `"1975"`) instead of a city name. The mapper does not currently filter these. If you query by city, expect garbage values for storage-tank facilities. ~6 confirmed cases in PA; unaudited at scale.
 - **`nj_pfas` records are missing ZIP codes.** The PFAS survey layer doesn't include zip in its attributes. The data exists on a sibling NJ Air Quality layer and could be backfilled by joining on facility ID, but the connector doesn't currently do that.
 - **`mi_egle` only covers air sources from 2018+.** Michigan state coverage is thinner than other industrial states because hazmat and remediation programs aren't covered by the state-level connector. For comprehensive MI coverage, rely on federal EPA sources (ECHO, RCRA) plus `mi_egle`.
@@ -125,7 +123,7 @@ Caveats observed during the original product's run, surfaced here for anyone usi
 
 ## Status
 
-Archived. Extracted from a discontinued product. No active maintenance. Pull requests probably won't be reviewed. Fork freely.
+Maintenance is best-effort. Issues and PRs may sit a while; if you need something fixed urgently, fork freely.
 
 ## Disclaimer
 
@@ -139,7 +137,7 @@ This software and any data it produces are provided **AS IS**, without warranty 
 
 For authoritative facility records, **contact the source agency directly** (EPA via [echo.epa.gov](https://echo.epa.gov/), or the relevant state environmental agency).
 
-**Takedown / correction requests:** open an issue on this repository. This is an archived project with no active maintenance, but issues will be reviewed periodically.
+**Takedown / correction requests:** open an issue on this repository. Maintenance is best-effort; issues will be reviewed when time allows.
 
 The author makes no representation that any specific facility, violation, or score reflects current compliance status, and disclaims all liability for decisions made in reliance on this software or its output.
 
