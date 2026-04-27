@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230c1220'/><text x='16' y='23' font-size='20' font-family='sans-serif' font-weight='bold' text-anchor='middle' fill='%230891b2'>C</text></svg>">
+<title>Enviolations — Scoring Methodology</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #f5f4ef;
+  color: #1a1a2e;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+.header {
+  background: #0c1220;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid rgba(8, 145, 178, 0.3);
+}
+.header-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+}
+.brand-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: #fff;
+  text-decoration: none;
+  letter-spacing: -0.03em;
+}
+.brand-name .brand-accent { color: #0891b2; }
+.brand-tagline {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: #64748b;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-left: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid #334155;
+  line-height: 1;
+}
+.header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.header-link {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #94a3b8;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+.header-link:hover { color: #0891b2; }
+.content {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  line-height: 1.7;
+  flex: 1;
+}
+.content h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.5rem; }
+.content h2 { font-size: 1.2rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.5rem; color: #1a1a2e; }
+.content h3 { font-size: 1rem; font-weight: 600; margin-top: 1.4rem; margin-bottom: 0.4rem; color: #374151; }
+.content p { margin-bottom: 1rem; font-size: 0.92rem; color: #374151; }
+.content ul, .content ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+.content li { margin-bottom: 0.4rem; font-size: 0.92rem; color: #374151; }
+.content strong { font-weight: 600; color: #1a1a2e; }
+.content hr { border: none; border-top: 1px solid #e5e7eb; margin: 2rem 0; }
+.content table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.88rem; }
+.content th, .content td { border: 1px solid #e5e7eb; padding: 0.5rem 0.75rem; text-align: left; }
+.content th { background: #f9fafb; font-weight: 600; }
+.content code { background: #f3f4f6; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.85rem; }
+.content pre { background: #f3f4f6; padding: 1rem; border-radius: 4px; overflow-x: auto; margin-bottom: 1rem; }
+.content pre code { background: none; padding: 0; }
+.content blockquote { border-left: 3px solid #0891b2; padding-left: 1rem; margin-bottom: 1rem; color: #6b7280; }
+.loading { text-align: center; padding: 3rem; color: #94a3b8; }
+.error { text-align: center; padding: 3rem; color: #dc2626; }
+.footer {
+  background: #0c1220;
+  padding: 0.85rem 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.footer-inner {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.footer-disclaimer {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+.footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.footer-meta {
+  font-size: 0.65rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.footer-meta a {
+  color: #64748b;
+  text-decoration: none;
+}
+.footer-meta a:hover { color: #0891b2; }
+.footer-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.footer-nav a {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  text-decoration: none;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  transition: color 0.15s, background 0.15s;
+}
+.footer-nav a:hover {
+  color: #0891b2;
+  background: rgba(8, 145, 178, 0.08);
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <a href="/" class="brand-name">Civ<span class="brand-accent">Data</span></a>
+      <span class="brand-tagline">Environmental Compliance</span>
+    </div>
+    <div class="header-right">
+      <a href="/" class="header-link">Dashboard</a>
+      <a href="/pricing.html" class="header-link">Pricing</a>
+    </div>
+  </div>
+</header>
+
+<div class="content" id="methodology-content">
+  <div class="loading">Loading methodology...</div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-disclaimer">
+      Screening data from public government records. Not an ASTM E1527-21 compliant environmental database report or professional environmental assessment.
+    </div>
+    <div class="footer-row">
+      <div class="footer-meta">
+        <span>Reference dashboard for the <a href="https://github.com/csheaff/enviolations">enviolations</a> library.</span>
+      </div>
+      <nav class="footer-nav">
+        <a href="/">Dashboard</a>
+        <a href="/docs" target="_blank">API Docs</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Minimal markdown-to-HTML renderer (no dependencies)
+function renderMarkdown(md) {
+  var lines = md.split('\n');
+  var html = '';
+  var inList = false;
+  var inOrderedList = false;
+  var inCode = false;
+  var inTable = false;
+  var tableHeader = false;
+  var inBlockquote = false;
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+
+    // Fenced code blocks
+    if (line.trim().startsWith('```')) {
+      if (inCode) {
+        html += '</code></pre>';
+        inCode = false;
+      } else {
+        if (inList) { html += '</ul>'; inList = false; }
+        if (inOrderedList) { html += '</ol>'; inOrderedList = false; }
+        html += '<pre><code>';
+        inCode = true;
+      }
+      continue;
+    }
+    if (inCode) {
+      html += escHtml(line) + '\n';
+      continue;
+    }
+
+    // Blank line
+    if (line.trim() === '') {
+      if (inList) { html += '</ul>'; inList = false; }
+      if (inOrderedList) { html += '</ol>'; inOrderedList = false; }
+      if (inTable) { html += '</table>'; inTable = false; }
+      if (inBlockquote) { html += '</blockquote>'; inBlockquote = false; }
+      continue;
+    }
+
+    // HR
+    if (/^---+$/.test(line.trim())) {
+      html += '<hr>';
+      continue;
+    }
+
+    // Headings
+    var hMatch = line.match(/^(#{1,6})\s+(.+)/);
+    if (hMatch) {
+      var level = hMatch[1].length;
+      html += '<h' + level + '>' + inlineFormat(hMatch[2]) + '</h' + level + '>';
+      continue;
+    }
+
+    // Table rows
+    if (line.trim().startsWith('|')) {
+      var cells = line.split('|').filter(function(c, idx, arr) { return idx > 0 && idx < arr.length - 1; });
+      // Skip separator rows
+      if (cells.every(function(c) { return /^[\s:-]+$/.test(c); })) {
+        tableHeader = false;
+        continue;
+      }
+      if (!inTable) {
+        html += '<table>';
+        inTable = true;
+        tableHeader = true;
+      }
+      var tag = tableHeader ? 'th' : 'td';
+      html += '<tr>';
+      cells.forEach(function(c) { html += '<' + tag + '>' + inlineFormat(c.trim()) + '</' + tag + '>'; });
+      html += '</tr>';
+      continue;
+    }
+
+    // Blockquote
+    if (line.trim().startsWith('>')) {
+      if (!inBlockquote) { html += '<blockquote>'; inBlockquote = true; }
+      html += '<p>' + inlineFormat(line.replace(/^>\s*/, '')) + '</p>';
+      continue;
+    }
+
+    // Unordered list
+    if (/^\s*[-*]\s+/.test(line)) {
+      if (!inList) { html += '<ul>'; inList = true; }
+      html += '<li>' + inlineFormat(line.replace(/^\s*[-*]\s+/, '')) + '</li>';
+      continue;
+    }
+
+    // Ordered list
+    if (/^\s*\d+\.\s+/.test(line)) {
+      if (!inOrderedList) { html += '<ol>'; inOrderedList = true; }
+      html += '<li>' + inlineFormat(line.replace(/^\s*\d+\.\s+/, '')) + '</li>';
+      continue;
+    }
+
+    // Paragraph
+    html += '<p>' + inlineFormat(line) + '</p>';
+  }
+
+  if (inList) html += '</ul>';
+  if (inOrderedList) html += '</ol>';
+  if (inCode) html += '</code></pre>';
+  if (inTable) html += '</table>';
+  if (inBlockquote) html += '</blockquote>';
+
+  return html;
+}
+
+function inlineFormat(text) {
+  return text
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+fetch('/api/v1/methodology')
+  .then(function(res) {
+    if (!res.ok) throw new Error(res.status === 429 ? 'Rate limit exceeded. Please try again in a few minutes.' : 'Server error (' + res.status + ')');
+    return res.json();
+  })
+  .then(function(data) {
+    if (!data || !data.content) throw new Error('No methodology content available.');
+    document.getElementById('methodology-content').innerHTML = renderMarkdown(data.content);
+  })
+  .catch(function(err) {
+    document.getElementById('methodology-content').innerHTML = '<div class="error">' + escHtml(err.message) + '</div>';
+  });
+</script>
+
+</body>
+</html>

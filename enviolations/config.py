@@ -12,3 +12,8 @@ EPA_API_KEY = os.environ.get("EPA_API_KEY", "")
 RATE_LIMIT_DELAY = float(os.environ.get("ENVIOLATIONS_RATE_LIMIT_DELAY", "3.6"))
 
 BATCH_SIZE = int(os.environ.get("ENVIOLATIONS_BATCH_SIZE", "500"))
+
+# Used by the optional reference HTTP API (examples/api/) to disable
+# /docs and /redoc when running in production. Set ENVIOLATIONS_ENV=production
+# to harden the API surface.
+ENVIOLATIONS_ENV = os.environ.get("ENVIOLATIONS_ENV", "development")

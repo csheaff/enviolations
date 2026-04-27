@@ -1,0 +1,12 @@
+# Additional dependencies for running the example API and dashboard.
+# Install on top of the main library: pip install -r requirements.txt -r examples/requirements.txt
+
+# HTTP API
+fastapi>=0.115
+uvicorn[standard]>=0.34
+
+# Optional: PDF screening report generation (used by /api/v1/screening-report)
+reportlab>=4.0
+
+# Optional: Static map images for PDF reports
+matplotlib>=3.7

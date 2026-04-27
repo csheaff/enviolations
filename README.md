@@ -36,14 +36,18 @@ A few useful reference points when building a new connector:
 
 Full source list: see `enviolations/sources/`.
 
-## What's NOT included
+## Reference API and dashboard
 
-Deliberately out of scope for this library:
+`examples/` contains a working FastAPI server and single-page web dashboard built on top of the library. They're a starting point — fork and adapt freely.
 
-- **API server** (FastAPI) — well-trodden pattern; wrap the library in a REST API yourself in an afternoon if you need one.
-- **MCP server** — same reasoning.
-- **Dashboard / UI** — out of scope.
-- **CLI dispatcher** — write your own driver; the quick-start below shows the pattern.
+```bash
+pip install -r requirements.txt -r examples/requirements.txt
+uvicorn examples.api.app:create_app --factory --port 8000
+# Dashboard: http://localhost:8000/
+# API docs:  http://localhost:8000/docs
+```
+
+See `examples/README.md` for the full layout, endpoints, and architecture notes.
 
 ## Requirements
 

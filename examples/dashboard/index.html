@@ -1,0 +1,3261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230c1220'/><text x='16' y='23' font-size='20' font-family='sans-serif' font-weight='bold' text-anchor='middle' fill='%230891b2'>C</text></svg>">
+<title>Enviolations — Environmental Compliance Search</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-deep: #0c1220;
+  --bg-surface: #f5f4ef;
+  --bg-panel: #ffffff;
+  --bg-hover: #eeeee8;
+  --text-primary: #1a1a2e;
+  --text-secondary: #5c6370;
+  --text-muted: #94a3b8;
+  --accent: #0891b2;
+  --accent-dark: #0e7490;
+  --accent-light: #e0f7fa;
+  --risk-critical: #7f1d1d;
+  --risk-critical-bg: #fee2e2;
+  --risk-high: #dc2626;
+  --risk-high-bg: #fef2f2;
+  --risk-medium: #d97706;
+  --risk-medium-bg: #fffbeb;
+  --risk-low: #059669;
+  --risk-low-bg: #ecfdf5;
+  --risk-unscored: #9ca3af;
+  --risk-unscored-bg: #f3f4f6;
+  --border: #ddddd5;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.15);
+  --font-brand: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --radius: 6px;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--bg-deep);
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid rgba(8, 145, 178, 0.3);
+  position: relative;
+  z-index: 100;
+}
+.header-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+}
+.brand-name {
+  font-family: var(--font-brand);
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: #fff;
+  letter-spacing: -0.03em;
+}
+.brand-name .brand-accent { color: var(--accent); }
+.brand-tagline {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: #64748b;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-left: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid #334155;
+  line-height: 1;
+}
+.header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.brand-stats {
+  font-size: 0.73rem; color: #cbd5e1;
+  font-variant-numeric: tabular-nums; letter-spacing: 0.01em;
+}
+.api-status {
+  display: flex; align-items: center; gap: 0.35rem;
+  font-size: 0.68rem; color: #94a3b8; white-space: nowrap;
+  cursor: default;
+}
+.header-link {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #94a3b8;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+.header-link:hover { color: var(--accent); }
+.header-dropdown {
+  position: relative;
+}
+.header-dropdown-toggle {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #94a3b8;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.header-dropdown-toggle:hover { color: var(--accent); }
+.header-dropdown-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  padding-top: 0.4rem;
+  z-index: 200;
+}
+.header-dropdown-menu-inner {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  min-width: 140px;
+  padding: 0.3rem 0;
+}
+.header-dropdown:hover .header-dropdown-menu,
+.header-dropdown:focus-within .header-dropdown-menu,
+.header-dropdown.open .header-dropdown-menu { display: block; }
+.header-dropdown-menu-inner a {
+  display: block;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.72rem;
+  color: #334155;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.header-dropdown-menu-inner a:hover { background: #f1f5f9; color: var(--accent); }
+.api-status-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  background: #475569;
+}
+.api-status-dot.online { background: #22c55e; }
+.api-status-dot.offline { background: #ef4444; }
+.api-status-dot.checking {
+  background: #475569;
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; } 50% { opacity: 0.4; }
+}
+
+/* ── Search bar ── */
+.search-bar {
+  background: var(--bg-panel);
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 90;
+}
+.disclaimer-bar {
+  background: #f8f7f2;
+  padding: 0.3rem 1.5rem;
+  font-size: 0.68rem;
+  color: #64748b;
+  text-align: center;
+  line-height: 1.4;
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+}
+.disclaimer-bar .disclaimer-stats {
+  color: #475569;
+  font-weight: 500;
+}
+.disclaimer-bar a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+.disclaimer-bar a:hover { text-decoration: underline; }
+.search-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.search-group { flex: 1; position: relative; }
+.search-group svg {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); pointer-events: none;
+}
+.search-group input {
+  width: 100%;
+  padding: 0.65rem 0.75rem 0.65rem 2.5rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(8,145,178,0.12);
+}
+.search-group input::placeholder { color: var(--text-muted); }
+#radius-select {
+  padding: 0.65rem 0.75rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  cursor: pointer;
+  min-width: 180px;
+}
+.radius-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.radius-info-btn {
+  width: 20px; height: 20px; flex-shrink: 0;
+  border-radius: 50%; border: 1.5px solid var(--border);
+  background: var(--bg-panel); color: var(--text-muted);
+  font-size: 0.7rem; font-weight: 700; font-family: var(--font-body);
+  cursor: help; display: flex; align-items: center; justify-content: center;
+  line-height: 1; transition: border-color 0.15s, color 0.15s;
+}
+.radius-info-btn:hover { border-color: var(--accent); color: var(--accent); }
+.radius-tooltip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 300px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 0.75rem 0.9rem;
+  font-size: 0.75rem;
+  font-family: var(--font-body);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  z-index: 200;
+  pointer-events: none;
+}
+.radius-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -6px; left: 18px;
+  width: 10px; height: 10px;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+.radius-tooltip strong { color: var(--text-primary); font-size: 0.78rem; }
+.radius-tooltip ul { margin: 0.35rem 0 0; padding-left: 1.1rem; }
+.radius-tooltip li { margin-bottom: 0.2rem; }
+.radius-tooltip p { margin: 0.45rem 0 0; font-style: italic; color: var(--text-muted); }
+.radius-info-btn:hover + .radius-tooltip { display: block; }
+.pf-chip-info-wrap {
+  position: relative; display: inline-flex; align-items: center; gap: 0.2rem;
+}
+.pf-chip-info-btn {
+  width: 14px; height: 14px; flex-shrink: 0;
+  border-radius: 50%; border: 1.5px solid var(--border);
+  background: var(--bg-panel); color: var(--text-muted);
+  font-size: 0.6rem; font-weight: 700; font-family: var(--font-body);
+  cursor: help; display: flex; align-items: center; justify-content: center;
+  line-height: 1; transition: border-color 0.15s, color 0.15s;
+  padding: 0;
+}
+.pf-chip-info-btn:hover { border-color: var(--accent); color: var(--accent); }
+.pf-chip-tooltip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 280px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 0.65rem 0.8rem;
+  font-size: 0.73rem;
+  font-family: var(--font-body);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  z-index: 200;
+  pointer-events: none;
+}
+.pf-chip-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -6px; left: 14px;
+  width: 10px; height: 10px;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+.pf-chip-info-btn:hover + .pf-chip-tooltip { display: block; }
+#btn-search {
+  padding: 0.65rem 1.25rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+#btn-search:hover { background: var(--accent-dark); }
+#btn-search:disabled { opacity: 0.6; cursor: wait; }
+
+.name-filter-input {
+  flex: 1; min-width: 80px; max-width: 140px; padding: 0.25rem 0.5rem;
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+  font-size: 0.72rem; font-family: var(--font-body);
+  background: var(--bg-panel); color: var(--text-primary);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.name-filter-input:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(8,145,178,0.12);
+}
+.name-filter-input::placeholder { color: var(--text-muted); }
+.sort-wrap {
+  display: flex; align-items: center; gap: 0.3rem;
+}
+.sort-label {
+  font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.04em; font-weight: 500; white-space: nowrap;
+}
+.sort-select {
+  padding: 0.22rem 0.5rem; border: 1.5px solid var(--border);
+  border-radius: var(--radius); font-size: 0.72rem;
+  font-family: var(--font-body); background: var(--bg-panel);
+  color: var(--text-secondary); cursor: pointer;
+}
+.sort-select:focus { outline: none; border-color: var(--accent); }
+.pf-toggle {
+  display: flex; align-items: center; gap: 0.25rem; margin-left: auto;
+  font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.04em; font-weight: 500; cursor: pointer; user-select: none;
+  white-space: nowrap;
+}
+.pf-toggle input[type="checkbox"] { accent-color: var(--accent); cursor: pointer; }
+.pf-toggle.active { color: var(--accent); }
+
+.recent-searches {
+  max-width: 1600px;
+  margin: 0.5rem auto 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.recent-searches.hidden { display: none; }
+.recent-label {
+  font-size: 0.7rem; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;
+}
+.recent-chip {
+  font-size: 0.73rem; padding: 0.18rem 0.55rem;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 99px; cursor: pointer; color: var(--text-secondary);
+  font-family: var(--font-body); transition: all 0.15s;
+}
+.recent-chip:hover {
+  background: var(--accent-light); color: var(--accent-dark); border-color: var(--accent);
+}
+
+/* ── Main layout ── */
+.main { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+.map-col { flex: 0 0 60%; position: relative; }
+#map { width: 100%; height: 100%; }
+.results-col {
+  flex: 0 0 40%; overflow: hidden;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column;
+}
+
+/* ── Map loading ── */
+.map-loading {
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,0.75);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500; gap: 0.5rem;
+  font-size: 0.85rem; color: var(--text-secondary);
+  backdrop-filter: blur(2px);
+}
+.map-loading.hidden { display: none; }
+.results-loading {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 4rem 1rem; font-size: 0.85rem; color: var(--text-secondary);
+}
+.results-loading.hidden { display: none; }
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Center marker */
+.center-marker {
+  width: 14px; height: 14px;
+  background: var(--accent); border: 2px solid #fff; border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(8,145,178,0.25);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 4px rgba(8,145,178,0.25); }
+  50% { box-shadow: 0 0 0 10px rgba(8,145,178,0.08); }
+}
+
+/* ── Empty / error states ── */
+.empty-state, .error-state {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 2rem; text-align: center;
+}
+.empty-state.hidden, .error-state.hidden { display: none; }
+.empty-state svg { color: var(--text-muted); margin-bottom: 1rem; }
+.empty-state h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.4rem; }
+.empty-state p { font-size: 0.85rem; color: var(--text-secondary); max-width: 340px; line-height: 1.5; }
+.empty-state-integrations { font-size: 0.75rem !important; color: var(--text-muted) !important; margin-top: 1rem !important; }
+.empty-state-integrations a { color: var(--accent); text-decoration: none; }
+.empty-state-integrations a:hover { text-decoration: underline; }
+.btn-demo {
+  margin-top: 0.75rem; padding: 0.5rem 1.1rem;
+  background: var(--accent); color: #fff; border: none;
+  border-radius: var(--radius); font-size: 0.85rem;
+  font-family: var(--font-body); font-weight: 600; cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-demo:hover { background: var(--accent-dark); }
+.error-state svg { color: var(--risk-high); margin-bottom: 1rem; }
+.error-state h3 { font-size: 1.05rem; font-weight: 600; color: var(--risk-high); margin-bottom: 0.4rem; }
+.error-state p { font-size: 0.85rem; color: var(--text-secondary); max-width: 300px; line-height: 1.5; }
+.geocode-hints { margin-top: 1rem; text-align: left; max-width: 320px; }
+.geocode-hints.hidden { display: none; }
+.geocode-hints p { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 600; }
+.geocode-hints ul { list-style: none; padding: 0; margin: 0; }
+.geocode-hints li { font-size: 0.8rem; color: var(--text-secondary); padding: 0.25rem 0 0.25rem 1.1rem; position: relative; line-height: 1.4; }
+.geocode-hints li::before { content: '\2192'; position: absolute; left: 0; color: var(--text-muted); }
+.geocode-hints .hint-action { color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; background: none; border: none; padding: 0; font: inherit; font-size: 0.8rem; }
+
+/* ── Results content ── */
+.results-content { flex: 1; min-height: 0; overflow-y: auto; }
+.results-content.hidden { display: none; }
+
+.summary-row {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 0; padding: 0;
+  background: var(--bg-panel); border-bottom: 1px solid var(--border);
+}
+.summary-card {
+  text-align: center; padding: 0.65rem 0.5rem;
+  border-right: 1px solid var(--border);
+}
+.summary-card:last-child { border-right: none; }
+.summary-card .sc-value {
+  font-size: 1.3rem; font-weight: 700;
+  font-variant-numeric: tabular-nums; line-height: 1;
+}
+.summary-card .sc-label {
+  font-size: 0.65rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text-muted);
+  margin-top: 0.25rem; font-weight: 500;
+}
+.summary-card .sc-sublabel {
+  font-size: 0.6rem; color: var(--text-muted);
+  margin-top: 0.15rem; font-weight: 400; line-height: 1.2;
+}
+.sc-value.v-total { color: var(--accent-dark); }
+.sc-value.v-high { color: var(--risk-high); }
+.sc-value.v-medium { color: var(--risk-medium); }
+.sc-value.v-violations { color: var(--text-primary); }
+
+.target-property-banner {
+  padding: 0.6rem 1rem; font-size: 0.78rem; line-height: 1.4;
+  border-bottom: 1px solid var(--border);
+}
+.target-property-banner.hidden { display: none; }
+.target-property-banner.tp-found {
+  background: #fef2f2; color: #7f1d1d; border-left: 3px solid var(--risk-high);
+}
+.target-property-banner.tp-clean {
+  background: #ecfdf5; color: #065f46; border-left: 3px solid var(--risk-low);
+}
+.tp-label { font-weight: 600; }
+.tp-facilities { margin-top: 0.3rem; }
+.tp-facility-name { font-weight: 500; }
+
+.astm-coverage-toggle {
+  border-bottom: 1px solid var(--border); background: var(--bg-panel);
+}
+.astm-toggle-btn {
+  width: 100%; text-align: left; padding: 0.45rem 1rem; border: none;
+  background: none; font-size: 0.72rem; font-weight: 600; color: var(--text-secondary);
+  cursor: pointer; font-family: var(--font-body); letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.astm-toggle-btn:hover { color: var(--accent); }
+#astm-arrow { font-size: 0.55rem; margin-left: 0.3rem; display: inline-block; transition: transform 0.2s; }
+#astm-arrow.open { transform: rotate(90deg); }
+.astm-coverage-panel {
+  padding: 0.5rem 1rem 0.7rem; background: var(--bg-panel);
+  border-bottom: 1px solid var(--border); font-size: 0.72rem;
+  line-height: 1.5; color: var(--text-secondary);
+}
+.astm-coverage-panel.hidden { display: none; }
+.astm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.15rem 1.5rem; }
+.astm-row { display: flex; align-items: center; gap: 0.35rem; }
+.astm-check { color: var(--risk-low); font-weight: 700; }
+.astm-miss { color: var(--text-muted); font-weight: 700; }
+.astm-db-name { font-weight: 500; color: var(--text-primary); }
+.astm-source { color: var(--text-muted); }
+
+.results-header {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: var(--bg-panel); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 10;
+}
+.results-title-block {
+  flex: 1; min-width: 0;
+}
+.results-title {
+  font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.matched-address {
+  font-size: 0.68rem; color: var(--text-muted);
+  font-weight: 400; margin-top: 0.1rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.matched-address:empty { display: none; }
+.geocode-warning {
+  font-size: 0.68rem; color: #92400e; background: #fef3c7;
+  border: 1px solid #f59e0b; border-radius: 3px;
+  padding: 0.2rem 0.5rem; margin-top: 0.25rem;
+  display: none;
+}
+.geocode-warning.visible { display: block; }
+.geocode-warning.critical {
+  font-size: 0.72rem; color: #7f1d1d; background: #fee2e2;
+  border: 1.5px solid #dc2626; border-radius: 3px;
+  padding: 0.35rem 0.6rem; margin-top: 0.35rem;
+  font-weight: 500;
+}
+.results-header-right {
+  display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0;
+}
+.data-freshness {
+  font-size: 0.68rem; color: var(--risk-low);
+  font-weight: 500; white-space: nowrap;
+}
+.data-freshness.hidden { display: none; }
+.filter-toolbar {
+  display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 1rem;
+  border-bottom: 1px solid var(--border); background: var(--bg-panel);
+}
+.filter-toggle-btn {
+  padding: 0.2rem 0.5rem; border: 1px solid var(--border); border-radius: 10px;
+  font-size: 0.65rem; font-family: var(--font-body); font-weight: 500;
+  background: transparent; color: var(--text-secondary); cursor: pointer;
+  transition: all 0.15s; margin-left: auto; white-space: nowrap;
+}
+.filter-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
+.filter-toggle-btn.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); }
+.program-filters {
+  display: flex; align-items: center; gap: 0.3rem; padding: 0.35rem 1rem;
+  border-bottom: 1px solid var(--border); background: var(--bg-panel); flex-wrap: wrap;
+}
+.program-filters.hidden { display: none; }
+.pf-label {
+  font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.04em; font-weight: 500; margin-right: 0.15rem;
+}
+.pf-chip {
+  padding: 0.2rem 0.55rem; border: 1px solid var(--border); border-radius: 10px;
+  font-size: 0.68rem; font-family: var(--font-body); font-weight: 500;
+  background: transparent; color: var(--text-secondary); cursor: pointer;
+  transition: all 0.15s;
+}
+.pf-chip:hover { border-color: var(--accent); color: var(--accent); }
+.pf-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.pf-separator {
+  width: 1px; height: 16px; background: var(--border); margin: 0 0.25rem; flex-shrink: 0;
+}
+.btn-export {
+  display: flex; align-items: center; gap: 0.3rem;
+  padding: 0.3rem 0.65rem;
+  background: var(--bg-surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.73rem; font-family: var(--font-body); font-weight: 600;
+  color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+  letter-spacing: 0.02em;
+}
+.btn-export:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.btn-export svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+/* ── Facility cards ── */
+.results-list { padding: 0.5rem; }
+.facility-card {
+  padding: 0.65rem 0.85rem;
+  background: var(--bg-panel); border-radius: var(--radius);
+  margin-bottom: 0.35rem; cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.15s;
+  animation: fadeUp 0.3s ease-out both;
+  box-shadow: var(--shadow-sm);
+}
+.facility-card:hover { background: var(--bg-hover); border-left-color: var(--accent); box-shadow: var(--shadow-md); }
+.facility-card.selected { background: var(--accent-light); border-left-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), var(--shadow-sm); }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fc-header { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
+.fc-name {
+  font-size: 0.84rem; font-weight: 600; line-height: 1.3; flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.fc-distance {
+  font-size: 0.73rem; color: var(--text-muted);
+  font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 500;
+}
+.fc-address {
+  font-size: 0.73rem; color: var(--text-secondary); margin-top: 0.15rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.fc-address.addr-unavailable { color: var(--text-muted); font-style: italic; }
+.fc-industry {
+  font-size: 0.68rem; color: var(--text-muted); margin-top: 0.1rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: italic;
+}
+.fc-warning {
+  font-size: 0.68rem; color: #d97706; margin-top: 0.15rem;
+  background: #fef3c7; padding: 0.1rem 0.4rem; border-radius: 3px;
+  display: inline-block;
+}
+.stale-badge {
+  font-size: 0.64rem; color: #92400e;
+  padding: 0.1rem 0.4rem; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 99px;
+  font-weight: 500; cursor: help;
+}
+.stale-warning {
+  font-size: 0.78rem; color: #92400e;
+  background: #fffbeb; border: 1px solid #f59e0b;
+  border-radius: var(--radius); padding: 0.4rem 0.75rem;
+  margin-top: 0.75rem; line-height: 1.4;
+}
+.stale-warning.hidden { display: none; }
+.fc-meta { display: flex; align-items: center; gap: 0.35rem; margin-top: 0.4rem; flex-wrap: wrap; }
+.risk-badge {
+  display: inline-block; padding: 0.1rem 0.5rem; border-radius: 99px;
+  font-size: 0.66rem; font-weight: 600; letter-spacing: 0.02em;
+}
+.risk-badge.risk-critical { background: var(--risk-critical-bg); color: var(--risk-critical); }
+.risk-badge.risk-high { background: var(--risk-high-bg); color: var(--risk-high); }
+.risk-badge.risk-medium { background: var(--risk-medium-bg); color: var(--risk-medium); }
+.risk-badge.risk-low { background: var(--risk-low-bg); color: var(--risk-low); }
+.risk-badge.risk-unscored { background: var(--risk-unscored-bg); color: var(--risk-unscored); }
+.vc-badge {
+  font-size: 0.66rem; color: var(--text-secondary);
+  padding: 0.1rem 0.4rem; background: #f1f5f9; border-radius: 99px;
+}
+.source-badge { font-size: 0.64rem; color: var(--text-muted); }
+.enroll-badge {
+  font-size: 0.64rem; color: var(--text-muted);
+  padding: 0.1rem 0.4rem; background: #f8f8f0; border: 1px solid #e5e5d8; border-radius: 99px;
+  font-style: italic;
+}
+.superfund-badge {
+  font-size: 0.64rem; color: #92400e;
+  padding: 0.1rem 0.4rem; background: #fffbeb; border: 1px solid #f59e0b; border-radius: 99px;
+  font-weight: 500;
+}
+.pfas-badge {
+  font-size: 0.64rem; color: #7c3aed;
+  padding: 0.1rem 0.4rem; background: #f5f3ff; border: 1px solid #a78bfa; border-radius: 99px;
+  font-weight: 500;
+}
+.risk-badge.conf-low { opacity: 0.6; cursor: help; }
+.conf-footnote {
+  font-size: 0.65rem; color: var(--text-muted);
+  padding: 0.5rem 0.85rem 0.25rem;
+  border-top: 1px solid var(--border);
+}
+.conf-footnote a { color: var(--accent); text-decoration: none; }
+.conf-footnote a:hover { text-decoration: underline; }
+.no-results { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem; }
+.no-results-note { margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary); max-width: 300px; margin-left: auto; margin-right: auto; line-height: 1.5; }
+
+/* ── Drawer ── */
+.drawer-overlay {
+  position: fixed; top: 0; bottom: 0; left: 0; right: 40%;
+  background: rgba(12,18,32,0.35); z-index: 999;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.drawer-overlay.open { opacity: 1; pointer-events: auto; }
+.drawer {
+  position: fixed; bottom: 0; left: 0; right: 40%;
+  max-height: 65vh; background: var(--bg-panel);
+  border-top: 2px solid var(--accent);
+  border-radius: 14px 14px 0 0;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1000; overflow: hidden;
+  display: flex; flex-direction: column;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.15);
+}
+.drawer.open { transform: translateY(0); }
+.drawer-header {
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+  position: sticky; top: 0; z-index: 1; background: var(--bg-panel);
+}
+.drawer-title-row {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;
+}
+.drawer-title-row h2 { font-size: 1.1rem; font-weight: 700; line-height: 1.3; color: var(--text-primary); }
+.drawer-address { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem; }
+.drawer-close {
+  background: var(--bg-surface); border: 1.5px solid var(--border); border-radius: 8px;
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text-muted); transition: all 0.15s; flex-shrink: 0;
+}
+.drawer-close:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--text-muted); }
+.drawer-meta-row { display: flex; align-items: flex-start; gap: 1.25rem; margin-top: 1rem; }
+.drawer-score {
+  width: 70px; height: 70px; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.drawer-score .score-value { font-size: 1.5rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.drawer-score .score-label { font-size: 0.6rem; opacity: 0.65; font-weight: 500; }
+.risk-bg-critical { background: var(--risk-critical-bg); color: var(--risk-critical); }
+.risk-bg-high { background: var(--risk-high-bg); color: var(--risk-high); }
+.risk-bg-medium { background: var(--risk-medium-bg); color: var(--risk-medium); }
+.risk-bg-low { background: var(--risk-low-bg); color: var(--risk-low); }
+.risk-bg-unscored { background: var(--risk-unscored-bg); color: var(--risk-unscored); }
+.drawer-score.conf-low { border: 2px dashed currentColor; opacity: 0.7; }
+.drawer-score-wrap { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.score-direction-hint { font-size: 0.58rem; color: var(--text-muted); margin-top: 0.3rem; white-space: nowrap; }
+.drawer-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.75rem 1.25rem;
+  flex: 1;
+}
+.di-item { display: flex; flex-direction: column; gap: 0.15rem; }
+.di-label {
+  font-size: 0.62rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text-muted); font-weight: 500;
+}
+.di-value { font-size: 0.82rem; font-weight: 500; line-height: 1.35; }
+.risk-text-critical { color: var(--risk-critical); }
+.risk-text-high { color: var(--risk-high); }
+.risk-text-medium { color: var(--risk-medium); }
+.risk-text-low { color: var(--risk-low); }
+.risk-text-unscored { color: var(--risk-unscored); }
+.score-breakdown {
+  margin-top: 0.85rem; padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+.score-breakdown.hidden { display: none; }
+.sb-title {
+  font-size: 0.62rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text-muted); font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+.sb-bar {
+  height: 8px; border-radius: 4px; background: var(--bg-hover);
+  display: flex; overflow: hidden; margin-bottom: 0.5rem;
+}
+.sb-bar span {
+  display: block; height: 100%; transition: width 0.3s;
+}
+.sb-items {
+  display: flex; flex-wrap: wrap; gap: 0.3rem 1rem;
+  font-size: 0.7rem; color: var(--text-secondary);
+}
+.sb-items .sb-item { display: flex; align-items: center; gap: 0.25rem; }
+.sb-items .sb-dot {
+  width: 6px; height: 6px; border-radius: 50%; display: inline-block;
+}
+.drawer-body { padding: 1rem 1.5rem 1.5rem; overflow-y: auto; flex: 1; }
+.drawer-body h3 {
+  font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.drawer-body h3 span { font-weight: 400; color: var(--text-muted); font-size: 0.9em; }
+.violations-table-wrap { overflow-x: auto; }
+.violations-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.violations-table th {
+  text-align: left; padding: 0.5rem 0.75rem;
+  border-bottom: 2px solid var(--border);
+  font-weight: 600; color: var(--text-secondary);
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;
+  background: var(--bg-surface);
+}
+.violations-table td {
+  padding: 0.45rem 0.75rem; border-bottom: 1px solid #f0f0ea;
+  vertical-align: top;
+}
+.violations-table tbody tr:hover { background: var(--bg-hover); }
+.violations-table .desc-cell {
+  max-width: 400px; color: var(--text-secondary); font-size: 0.78rem; line-height: 1.4;
+}
+.desc-truncated { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.desc-toggle {
+  display: inline; background: none; border: none; padding: 0; margin-left: 0.25rem;
+  color: var(--accent); font-size: 0.72rem; cursor: pointer; font-family: inherit;
+}
+.desc-toggle:hover { text-decoration: underline; }
+.violations-table .loading-cell,
+.violations-table .empty-cell,
+.violations-table .error-cell {
+  text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 0.82rem;
+}
+.violations-table .error-cell { color: var(--risk-high); }
+.violations-table .status-resolved { color: var(--risk-low); font-weight: 500; }
+.violations-table .status-open { color: var(--risk-high); font-weight: 500; }
+.violations-table .status-unknown { color: var(--text-muted); }
+.drawer-source-links { margin-top: 0.35rem; display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.drawer-source-link {
+  display: inline-flex; align-items: center; gap: 0.2rem;
+  font-size: 0.72rem; color: var(--accent);
+  text-decoration: none;
+}
+.drawer-source-link:hover { text-decoration: underline; }
+.drawer-source-link + .drawer-source-link::before { content: '\00b7'; margin-right: 0.4rem; color: var(--text-muted); }
+
+/* ── Program abbr tooltips ── */
+abbr[title] {
+  text-decoration: underline dotted;
+}
+.drawer abbr[title] {
+  text-decoration: none;
+  cursor: help;
+}
+
+/* ── Pagination ── */
+.pagination-bar {
+  display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  padding: 0.55rem 1rem; background: var(--bg-panel);
+  border-top: 1px solid var(--border); flex-shrink: 0;
+}
+.pagination-bar.hidden { display: none; }
+.pg-btn {
+  padding: 0.25rem 0.6rem;
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+  font-size: 0.75rem; font-family: var(--font-body); font-weight: 500;
+  background: var(--bg-panel); color: var(--text-secondary); cursor: pointer;
+  transition: all 0.15s; min-width: 2rem; text-align: center;
+}
+.pg-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.pg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pg-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.pg-ellipsis { font-size: 0.75rem; color: var(--text-muted); padding: 0 0.15rem; }
+.pg-info {
+  font-size: 0.7rem; color: var(--text-muted);
+  margin-left: 0.4rem; white-space: nowrap;
+}
+
+/* ── Footer ── */
+.footer {
+  background: var(--bg-deep);
+  padding: 0.85rem 1.5rem;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.footer-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+.footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.footer-meta {
+  font-size: 0.65rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.footer-meta a {
+  color: #64748b;
+  text-decoration: none;
+}
+.footer-meta a:hover {
+  color: var(--accent);
+}
+.footer-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.footer-nav a {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  text-decoration: none;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  transition: color 0.15s, background 0.15s;
+}
+.footer-nav a:hover {
+  color: var(--accent);
+  background: rgba(8, 145, 178, 0.08);
+}
+
+/* ── Leaflet tweaks ── */
+.leaflet-control-attribution { font-size: 10px !important; }
+.leaflet-tooltip {
+  font-family: var(--font-body); font-size: 0.78rem;
+  padding: 4px 8px; border-radius: 4px; box-shadow: var(--shadow-sm);
+}
+.map-legend {
+  background: rgba(255,255,255,0.92); padding: 6px 10px; border-radius: 4px;
+  font-family: var(--font-body); font-size: 0.65rem; color: var(--text-secondary);
+  box-shadow: var(--shadow-sm); line-height: 1.6;
+}
+.map-legend span {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  margin-right: 3px; margin-left: 8px; vertical-align: middle;
+}
+.map-legend span:first-child { margin-left: 0; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  body { height: auto; min-height: 100vh; overflow: auto; }
+  .main { flex-direction: column; height: auto; min-height: calc(100vh - 130px); overflow: visible; }
+  .map-col { flex: none; height: 45vh; }
+  .results-col { flex: none; min-height: 45vh; border-left: none; border-top: 1px solid var(--border); }
+  .summary-row { grid-template-columns: repeat(2, 1fr); }
+  .summary-card:nth-child(2) { border-right: none; }
+  .sort-wrap { margin-left: 0; margin-top: 0.2rem; }
+  .pf-separator { display: none; }
+  .search-inner { flex-wrap: wrap; }
+  .search-group { flex: 1 1 100%; }
+  .drawer { max-height: 85vh; right: 0; }
+  .drawer-overlay { right: 0; }
+  .drawer-meta-row { flex-direction: column; align-items: flex-start; }
+  .brand-tagline { display: none; }
+  .header-right { gap: 0.5rem; }
+  .footer-row { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+  .footer-nav { flex-wrap: wrap; gap: 0.15rem; }
+  .disclaimer-bar { flex-wrap: wrap; justify-content: center; padding: 0.3rem 0.75rem; }
+  .disclaimer-stats { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-name">Civ<span class="brand-accent">Data</span></span>
+      <span class="brand-tagline">Environmental Compliance</span>
+    </div>
+    <div class="header-right">
+      <span class="brand-stats" id="brand-stats"></span>
+      <span class="api-status" id="api-status" title="API status">
+        <span class="api-status-dot checking" id="api-status-dot"></span>
+        <span id="api-status-label"></span>
+      </span>
+    </div>
+  </div>
+</header>
+
+<div class="search-bar">
+  <div class="search-inner">
+    <div class="search-group">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="search-input" placeholder="Address or coordinates (e.g. 1600 Pennsylvania Ave, Washington DC)" autocomplete="off" />
+    </div>
+    <div class="radius-wrap">
+      <select id="radius-select">
+        <optgroup label="ASTM E1527-21">
+          <option value="0.25">&frac14; mi (ERNS, IC)</option>
+          <option value="0.5">&frac12; mi (LUST, UST, SQG)</option>
+          <option value="1" selected>1 mi (NPL, RCRA TSD)</option>
+        </optgroup>
+        <optgroup label="Extended">
+          <option value="2">2 miles</option>
+          <option value="5">5 miles</option>
+        </optgroup>
+      </select>
+      <button class="radius-info-btn" type="button" aria-label="Radius help">?</button>
+      <div class="radius-tooltip">
+        <strong>ASTM E1527-21 standard search distances</strong>
+        <ul>
+          <li><strong>&frac14; mi</strong> &mdash; ERNS (Emergency Response Notification System), IC (Institutional Controls)</li>
+          <li><strong>&frac12; mi</strong> &mdash; LUST (Leaking Underground Storage Tanks), UST (Underground Storage Tanks), SQG (Small Quantity Generators)</li>
+          <li><strong>1 mi</strong> &mdash; NPL (National Priorities List / Superfund), RCRA TSD (Treatment, Storage &amp; Disposal)</li>
+        </ul>
+        <p>All sources are searched at any radius. These distances reflect standard Phase I ESA search radii.</p>
+      </div>
+    </div>
+    <button id="btn-search">Search</button>
+  </div>
+  <div class="recent-searches hidden" id="recent-searches"></div>
+</div>
+<div class="disclaimer-bar">
+  <span class="disclaimer-stats" id="disclaimer-stats"></span>
+  <span>Screening tool using public government records. Not a substitute for an ASTM E1527-21 compliant environmental database report.</span>
+</div>
+
+<main class="main">
+  <div class="map-col">
+    <div id="map"></div>
+    <div class="map-loading hidden" id="map-loading">
+      <div class="spinner"></div> Searching...
+    </div>
+  </div>
+  <div class="results-col">
+    <div class="empty-state" id="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6M8 11h6"/></svg>
+      <h3>Phase I ESA pre-screening in seconds</h3>
+      <p>Pre-screen any U.S. address against federal and state environmental databases. View compliance risk scores and download screening reports.</p>
+      <button class="btn-demo" onclick="quickSearch('600 Travis St, Houston, TX 77002', 1)">Try Houston, TX demo</button>
+    </div>
+    <div class="error-state hidden" id="error-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><circle cx="12" cy="16" r=".5" fill="currentColor"/></svg>
+      <h3>Search failed</h3>
+      <p id="error-message">Could not geocode address.</p>
+      <div id="geocode-hints" class="geocode-hints hidden"></div>
+    </div>
+    <div class="results-loading hidden" id="results-loading">
+      <div class="spinner"></div> Loading results...
+    </div>
+    <div class="results-content hidden" id="results-content">
+      <div class="summary-row">
+        <div class="summary-card"><div class="sc-value v-total" id="stat-total">0</div><div class="sc-label">Facilities</div></div>
+        <div class="summary-card"><div class="sc-value v-high" id="stat-high">0</div><div class="sc-label">High/Critical</div></div>
+        <div class="summary-card"><div class="sc-value v-medium" id="stat-medium">0</div><div class="sc-label">Medium</div></div>
+        <div class="summary-card"><div class="sc-value v-violations" id="stat-violations">0</div><div class="sc-label">w/ Violations</div><div class="sc-sublabel" id="stat-violation-records" style="white-space:nowrap"></div></div>
+      </div>
+      <div class="target-property-banner hidden" id="target-property-banner"></div>
+      <div class="results-header">
+        <div class="results-title-block">
+          <div class="results-title" id="results-title">Results</div>
+          <div class="matched-address" id="matched-address"></div>
+          <div class="geocode-warning" id="geocode-warning"></div>
+        </div>
+        <div class="results-header-right">
+          <span class="data-freshness hidden" id="data-freshness"></span>
+          <button class="btn-export" id="btn-export" title="Download PDF screening report">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            PDF
+          </button>
+          <button class="btn-export" id="btn-export-csv" title="Export search results as CSV">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            CSV
+          </button>
+        </div>
+      </div>
+      <div class="filter-toolbar" id="filter-toolbar">
+        <div class="sort-wrap">
+          <span class="sort-label">Sort:</span>
+          <select id="sort-select" class="sort-select">
+            <option value="distance">Nearest</option>
+            <option value="risk">Highest Risk</option>
+            <option value="violations">Most Violations</option>
+            <option value="name">Name A-Z</option>
+          </select>
+        </div>
+        <input type="text" id="name-filter" class="name-filter-input" placeholder="Filter by name" />
+        <label class="pf-toggle" id="pf-toggle-relevant" title="Hide score-0 registry-only entries (e.g. NJEMS-only facilities with no violations or regulatory programs)">
+          <input type="checkbox" id="chk-hide-score-zero" />
+          Relevant only
+        </label>
+        <button class="filter-toggle-btn" id="filter-toggle-btn" onclick="toggleProgramFilters()">Programs &#9660;</button>
+      </div>
+      <div class="program-filters hidden" id="program-filters">
+        <button class="pf-chip active" data-program="all">All</button>
+        <button class="pf-chip" data-program="RCRA" title="Resource Conservation and Recovery Act"><abbr title="Resource Conservation and Recovery Act">RCRA</abbr></button>
+        <button class="pf-chip" data-program="RCRA CA" title="RCRA Corrective Action — facilities with active mandated hazardous waste cleanup orders"><abbr title="RCRA Corrective Action">RCRA CA</abbr></button>
+        <button class="pf-chip" data-program="CWA" title="Clean Water Act"><abbr title="Clean Water Act">CWA</abbr></button>
+        <button class="pf-chip" data-program="CAA" title="Clean Air Act"><abbr title="Clean Air Act">CAA</abbr></button>
+        <button class="pf-chip" data-program="SDWA" title="Safe Drinking Water Act"><abbr title="Safe Drinking Water Act">SDWA</abbr></button>
+        <span class="pf-chip-info-wrap">
+          <button class="pf-chip" data-program="Superfund">Superfund</button>
+          <button class="pf-chip-info-btn" type="button" aria-label="Superfund filter info">?</button>
+          <div class="pf-chip-tooltip">Covers EPA NPL (National Priorities List) and SEMS/CERCLIS sites. State cleanup programs (CA DTSC, Water Board, NJ KCSL) appear under the <strong>State</strong> filter.</div>
+        </span>
+        <button class="pf-chip" data-program="LUST/UST">LUST/UST</button>
+        <button class="pf-chip" data-program="PFAS" title="Per- and polyfluoroalkyl substances — &quot;forever chemicals&quot;">PFAS</button>
+        <button class="pf-chip" data-program="State" title="State agency sources (e.g. NJ DEP, TCEQ, CA DTSC)">State</button>
+      </div>
+      <div class="results-list" id="results-list"></div>
+      <div class="pagination-bar hidden" id="pagination-bar"></div>
+    </div>
+  </div>
+</main>
+
+<div class="drawer-overlay" id="drawer-overlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title-row">
+      <div style="min-width:0;flex:1">
+        <h2 id="drawer-name">Facility Name</h2>
+        <p class="drawer-address" id="drawer-address">Address</p>
+        <div id="drawer-source-links"></div>
+      </div>
+      <button class="drawer-close" id="btn-drawer-close" aria-label="Close detail panel">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="pointer-events:none"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="drawer-meta-row">
+      <div class="drawer-score-wrap">
+        <div class="drawer-score" id="drawer-score">
+          <span class="score-value">--</span>
+          <span class="score-label">/100</span>
+        </div>
+        <span class="score-direction-hint" id="score-direction-hint">100 = highest risk</span>
+      </div>
+      <div class="drawer-info-grid">
+        <div class="di-item"><span class="di-label">Risk Level</span><span class="di-value" id="drawer-risk-level">--</span></div>
+        <div class="di-item"><span class="di-label">Confidence</span><span class="di-value" id="drawer-confidence">--</span></div>
+        <div class="di-item"><span class="di-label">Source</span><span class="di-value" id="drawer-source">--</span></div>
+        <div class="di-item"><span class="di-label">Programs</span><span class="di-value" id="drawer-programs">--</span></div>
+        <div class="di-item"><span class="di-label">Industry</span><span class="di-value" id="drawer-industry">--</span></div>
+        <div class="di-item"><span class="di-label">Distance</span><span class="di-value" id="drawer-distance">--</span></div>
+        <div class="di-item"><span class="di-label">Last Violation</span><span class="di-value" id="drawer-last-violation">--</span></div>
+      </div>
+    </div>
+    <div class="score-breakdown hidden" id="score-breakdown">
+      <div class="sb-title">Compliance Score Breakdown <span style="font-weight:400;font-size:0.58rem">(higher = higher risk)</span></div>
+      <div class="sb-bar" id="sb-bar"></div>
+      <div class="sb-items" id="sb-items"></div>
+    </div>
+    <div class="stale-warning hidden" id="drawer-stale-warning"></div>
+  </div>
+  <div class="drawer-body">
+    <h3>Violations <span id="drawer-violation-count"></span></h3>
+    <div class="violations-table-wrap">
+      <table class="violations-table">
+        <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Status</th></tr></thead>
+        <tbody id="drawer-violations-body">
+          <tr><td colspan="4" class="empty-cell">Select a facility to view violations</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-row">
+      <div class="footer-meta">
+        <span>Reference dashboard for the <a href="https://github.com/csheaff/enviolations">enviolations</a> library.</span>
+      </div>
+      <nav class="footer-nav">
+        <a href="/methodology.html" target="_blank">Methodology</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function() {
+  var src = new URLSearchParams(window.location.search).get('_src');
+  if (src) {
+    var _fetch = window.fetch;
+    window.fetch = function(input, init) {
+      init = init || {};
+      init.headers = new Headers(init.headers || {});
+      init.headers.set('X-Source', src);
+      return _fetch.call(this, input, init);
+    };
+  }
+})();
+const API = '/api/v1';
+const MAX_RECENT = 10;
+// Program codes that originate from TCEQ — show "(TCEQ)" suffix only for TX facilities (CIV-709).
+var _TCEQ_CODES = {AIR:1,AQNP:1,HW:1,IHW:1,IHWCA:1,WWPERMIT:1,PSTREG:1,PSTNR:1,LPSTRMD:1,STAGEII:1,AIRNSR:1,MSD:1,TIRES:1,USEDOIL:1,STORM:1,IOP:1,DRYCLEAN:1,P2PLAN:1,VCP:1,SDA:1,CWCP:1,USTOL:1,SLUDGE:1,AIROP:1,IHWNP:1};
+const PROGRAM_NAMES = {
+  // Generic program codes (used by TCEQ and potentially other state sources)
+  AIR:      "Air Permits",
+  AQNP:     "Air Quality Network Permit",
+  HW:       "Hazardous Waste",
+  IHW:      "Industrial and Hazardous Waste",
+  IHWCA:    "Industrial and Hazardous Waste Corrective Action",
+  WWPERMIT: "Wastewater Permit",
+  PSTREG:   "Petroleum Storage Tank Registration",
+  PSTNR:    "Petroleum Storage Tank Non-Reporter",
+  LPSTRMD:  "Lead Paint Stripping Removal Discharge",
+  STAGEII:  "Stage II Vapor Recovery",
+  AIRNSR:   "Air New Source Review",
+  MSD:      "Municipal Solid Waste Disposal",
+  TIRES:    "Used Tire Management",
+  USEDOIL:  "Used Oil",
+  STORM:    "Stormwater",
+  IOP:      "Industrial Operations Permit",
+  DRYCLEAN: "Dry Cleaner Program",
+  P2PLAN:   "Pollution Prevention Plan",
+  VCP:      "Voluntary Cleanup Program",
+  USTOL:    "Underground Storage Tank On-Line",
+  // Standard EPA programs
+  RCRA: "Resource Conservation and Recovery Act",
+  "RCRA CA": "RCRA Corrective Action (active mandated cleanup)",
+  CWA:  "Clean Water Act",
+  CAA:  "Clean Air Act",
+  SDWA: "Safe Drinking Water Act",
+  SEMS: "Superfund Enterprise Management System",
+  // NJ DEP programs
+  NJEMS: "NJ DEP Site Registry",
+  KCSL:  "Known Contaminated Site List (NJ DEP)",
+  // NJ DEP KCSL status codes (appear as compound strings in Programs field)
+  "ACTIVE - UHOT":     "Active — Underground Heating Oil Tank (NJ DEP KCSL status)",
+  "ACTIVE - POST REM": "Active — Post Remediation (NJ DEP KCSL status)",
+  "ACTIVE - CLOSED":   "Active — Closed (NJ DEP KCSL status)",
+  "ACTIVE - MOA":      "Active — Memorandum of Agreement (NJ DEP KCSL status)",
+  "ACTIVE - NFA":      "Active — No Further Action (NJ DEP KCSL status)",
+  // CA State Water Board programs (CIWQS + SMARTS)
+  // NPDES / wastewater discharge permits
+  NPDESWW:         "NPDES Wastewater Permit (CA Water Board)",
+  NPDINDSML:       "NPDES Industrial — Small (CA Water Board)",
+  NPDMUNILRG:      "NPDES Municipal — Large (CA Water Board)",
+  NPDMUNIOTH:      "NPDES Municipal — Other (CA Water Board)",
+  NPDNONMUNIPRCS:  "NPDES Non-Municipal Process (CA Water Board)",
+  DODNPDESWW:      "DOD NPDES Wastewater (CA Water Board)",
+  // Waste discharge requirements (WDR)
+  WDR:             "Waste Discharge Requirements (CA Water Board)",
+  WDRINDFP:        "WDR Individual Facility Plan (CA Water Board)",
+  WDRINDIVSML:     "WDR Individual — Small (CA Water Board)",
+  WDRMUNIENROTH:   "WDR Municipal Enrollment — Other (CA Water Board)",
+  WDRMUNILRG:      "WDR Municipal — Large (CA Water Board)",
+  WDRMUNIOTH:      "WDR Municipal — Other (CA Water Board)",
+  WDRMUNIOWTS:     "WDR Onsite Wastewater Treatment Systems (CA Water Board)",
+  WDRNONMUNIPRCS:  "WDR Non-Municipal Process (CA Water Board)",
+  DODWDR:          "DOD Waste Discharge Requirements (CA Water Board)",
+  // Stormwater permits
+  CONSTW:          "Construction Stormwater Permit (CA Water Board)",
+  INDSTW:          "Industrial Stormwater Permit (CA Water Board)",
+  MNSTW1:          "Municipal Stormwater — Phase 1 (CA Water Board)",
+  MNSTW2:          "Municipal Stormwater — Phase 2 (CA Water Board)",
+  // Certifications (CWA Section 401/404)
+  CERFILLEXC:      "Fill Exception Certification (CA Water Board)",
+  CERDREDGE:       "Dredge Certification (CA Water Board)",
+  CERMIT:          "Mitigation Certification (CA Water Board)",
+  CERREST:         "Restoration Certification (CA Water Board)",
+  CERMINING:       "Mining Certification (CA Water Board)",
+  // Animal waste / agricultural
+  AGT:             "Agricultural General Treatment (CA Water Board)",
+  ANIWSTCOWS:      "Animal Waste — Dairy/Cows (CA Water Board)",
+  ANIWSTGRZ:       "Animal Waste — Grazing (CA Water Board)",
+  ANIWSTOTH:       "Animal Waste — Other (CA Water Board)",
+  IRRI:            "Irrigation Discharge (CA Water Board)",
+  IRRIALLOTH:      "Irrigation — All Other (CA Water Board)",
+  IRRICANNABIS:    "Irrigation — Cannabis (CA Water Board)",
+  IRRIINDIVWDR:    "Irrigation — Individual WDR (CA Water Board)",
+  IRRIWAIVER:      "Irrigation Waiver (CA Water Board)",
+  // Land disposal / discharge
+  DISCHLND:        "Discharge to Land (CA Water Board)",
+  DISCHSW:         "Discharge to Surface Water (CA Water Board)",
+  LNDISP:          "Land Disposal (CA Water Board)",
+  LNDISPOTH:       "Land Disposal — Other (CA Water Board)",
+  LFNONOPER:       "Non-Operating Landfill (CA Water Board)",
+  TH:              "Title 27 Solid Waste (CA Water Board)",
+  // Sanitary sewer overflow
+  SSOMUNILRG:      "Sanitary Sewer Overflow — Municipal Large (CA Water Board)",
+  SSOMUNISML:      "Sanitary Sewer Overflow — Municipal Small (CA Water Board)",
+  // Spills, cleanups, enforcement
+  SLIC:            "Spills, Leaks, Investigations and Cleanups (CA Water Board)",
+  ENF13267:        "Enforcement Order (H&S Code 13267) (CA Water Board)",
+  ENFCAO:          "Cleanup and Abatement Order (CA Water Board)",
+  COHEAL:          "Community Health Action — Cleanup (CA Water Board)",
+  // Recycled water / special programs
+  REC:             "Recycled Water (CA Water Board)",
+  FSREC:           "Food Service Recycled Water (CA Water Board)",
+  REDEV:           "Redevelopment Site (CA Water Board)",
+  OLDNUR:          "Former Nursery Site (CA Water Board)",
+  UST:             "Underground Storage Tank",
+  VOLMON:          "Voluntary Monitoring (CA Water Board)",
+  UNREGS:          "Unregulated Site (CA Water Board)",
+  WIP:             "Waste Identification Program (CA Water Board)",
+  // Department of Defense
+  DOD:             "Department of Defense Facility (CA Water Board)",
+  DODTANKS:        "DOD Underground Storage Tanks (CA Water Board)",
+};
+const CONFIDENCE_LABELS = {
+  high: 'Score supported by violation data',
+  moderate: 'No violations on record',
+  low: 'Limited data available',
+};
+// Industries with inherent environmental risk where absence of violations does not
+// imply a clean site. A Phase I consultant should always independently verify these
+// regardless of violation history (PCE for dry cleaners; petroleum for gas stations, etc.).
+var INHERENTLY_HIGH_RISK_NAME_PATTERN = /\b(dry\s*clean\w*|cleaner(s)?|laundromat|coin\s*laundry|gas\s+station|filling\s+station|service\s+station|fuel\s+station|auto\s+repair|body\s+shop|auto\s+body|collision\s+center|oil\s+change|scrap|salvage\s+yard|junk\s+yard|junkyard|auto\s+salvage|chemical\s+plant|chemical\s+co|chem\s+plant|refin(ery|ing)|petroleum\s+plant|smelter|smelting|foundry|incinerator|waste\s+treatment)\b/i;
+function isInherentlyHighRiskName(name) {
+  return !!name && INHERENTLY_HIGH_RISK_NAME_PATTERN.test(name);
+}
+// Risk-aware confidence label: "appears clean" only for multi-source confirmed low-risk
+// facilities. Single-source facilities get a coverage caveat. High-risk industries get
+// a verification disclaimer regardless of violation history.
+// SEMS/Superfund and KCSL facilities get a specific note: enrollment signals confirmed or
+// suspected contamination, not routine regulatory compliance — not a clean bill of health.
+function confidenceLabel(confidence, riskLevel, f) {
+  if (confidence === 'moderate' && (riskLevel === 'critical' || riskLevel === 'high' || riskLevel === 'medium')) {
+    if (f && isSemsEnrolled(f))
+      return 'Superfund enrollment indicates contamination review — not a clean record';
+    if (f && isKcslEnrolled(f))
+      return 'Site confirmed on NJ Known Contaminated Site List — active or historical contamination on record';
+    if (f && isCleanupProgramEnrolled(f))
+      return 'Active contamination cleanup program — documented release requiring supervised remediation';
+    return 'Score based on program enrollment';
+  }
+  if (confidence === 'moderate' && (riskLevel === 'low' || riskLevel === 'unscored')) {
+    if (f && isInherentlyHighRiskName(f.name))
+      return 'No violations on record — verify independently';
+    if (f && isPstEnrolled(f))
+      return 'No violations on record — verify independently';
+    if (!f || !f.source_count || f.source_count <= 1)
+      return 'Data from 1 source only';
+    return 'Checked and appears clean';
+  }
+  return CONFIDENCE_LABELS[confidence] || CONFIDENCE_LABELS.low;
+}
+
+const NAICS_SECTORS = {
+  '11':'Agriculture','21':'Mining & Oil/Gas','22':'Utilities','23':'Construction',
+  '31':'Manufacturing','32':'Manufacturing','33':'Manufacturing',
+  '42':'Wholesale Trade','44':'Retail Trade','45':'Retail Trade',
+  '48':'Transportation','49':'Warehousing','51':'Information',
+  '52':'Finance & Insurance','53':'Real Estate','54':'Professional Services',
+  '55':'Management','56':'Waste Management & Remediation',
+  '61':'Education','62':'Health Care','71':'Arts & Entertainment',
+  '72':'Food & Accommodation','81':'Other Services','92':'Public Admin',
+};
+
+// Name-based industry inference patterns (mirrors pipeline/scoring.py).
+// Each entry: [regex, label]. First match wins.
+var NAME_INDUSTRY_PATTERNS = [
+  [/\bdry\s*clean\w*\b/i, 'Laundry/Dry Cleaning'],
+  [/\b(laundromat|coin\s*laundry|launder)\b/i, 'Laundry/Dry Cleaning'],
+  [/\bcleaner(s)?\b/i, 'Laundry/Dry Cleaning'],
+  [/\b(gas\s+station|filling\s+station|service\s+station|fuel\s+station)\b/i, 'Petroleum Retail'],
+  [/\b(exxon|mobil|chevron|bp|shell|valero|marathon|sunoco|citgo|76|arco|texaco)\b/i, 'Petroleum Retail'],
+  [/\b(auto\s+repair|body\s+shop|auto\s+body|collision\s+center|muffler|transmission\s+shop|brake\s+shop)\b/i, 'Auto Repair'],
+  [/\b(jiffy\s+lube|midas|pep\s+boys|meineke|maaco|grease\s+monkey|oil\s+change)\b/i, 'Auto Repair'],
+  [/\b(scrap|salvage\s+yard|junk\s+yard|junkyard|auto\s+salvage)\b/i, 'Scrap/Salvage'],
+  [/\b(photo\s+process|photo\s+lab|print\s+shop|printing)\b/i, 'Printing/Photo'],
+];
+
+function inferIndustryFromName(name) {
+  if (!name) return '';
+  for (var i = 0; i < NAME_INDUSTRY_PATTERNS.length; i++) {
+    if (NAME_INDUSTRY_PATTERNS[i][0].test(name)) return NAME_INDUSTRY_PATTERNS[i][1];
+  }
+  return '';
+}
+
+// Suppression rules: when a facility name matches the pattern, suppress the
+// listed NAICS sector prefixes from the label — they're clearly misclassified.
+// Mirrors NAICS_NAME_SUPPRESSION in pipeline/scoring.py.
+var NAICS_LABEL_SUPPRESSIONS = [
+  // Government / parks / recreation should not display as "Food & Accommodation"
+  // EPA ECHO sometimes assigns restaurant NAICS codes (72xx) to state park shops,
+  // visitor centers, and similar government/recreation facilities.
+  {
+    pattern: /\b(state\s+park|national\s+park|city\s+park|county\s+park|state\s+parks|national\s+parks|park\s+service|parks\s+(and\s+)?recreation|visitor\s+center|nature\s+center|public\s+works|public\s+utilities|city\s+hall|county\s+(building|office|government)|school\s+district|military\s+base|air\s+force|army\s+base|fire\s+(station|dept|department)|police\s+(station|dept|department)|water\s+(authority|district|utility|treatment)|wastewater|sewage\s+treatment|water\s+reclamation)\b/i,
+    suppressPrefixes: {'72': true}
+  },
+];
+
+function naicsLabel(codes, name) {
+  var label = '';
+  if (codes) {
+    // Build set of suppressed prefixes based on facility name
+    var suppressedPrefixes = {};
+    if (name) {
+      NAICS_LABEL_SUPPRESSIONS.forEach(function(rule) {
+        if (rule.pattern.test(name)) {
+          Object.assign(suppressedPrefixes, rule.suppressPrefixes);
+        }
+      });
+    }
+    var seen = {};
+    var labels = [];
+    codes.split(',').forEach(function(c) {
+      c = c.trim();
+      if (c.length >= 2) {
+        var prefix = c.substring(0, 2);
+        if (suppressedPrefixes[prefix]) return;  // skip suppressed sector
+        var sector = NAICS_SECTORS[prefix];
+        if (sector && !seen[sector]) { seen[sector] = true; labels.push(sector); }
+      }
+    });
+    label = labels.join(', ');
+  }
+  // Fall back to name-based inference when NAICS codes yield no label
+  if (!label && name) label = inferIndustryFromName(name);
+  return label;
+}
+
+const PAGE_SIZE = 250;  // facilities per page
+const STALE_YEARS = 5;  // threshold: facilities with no data newer than this are stale
+
+let map, markersLayer, radiusCircle, centerMarker;
+let searchResults = [];
+let searchResultsApiTotal = 0;
+let searchResultsApiTruncated = false;
+let searchResultsHighTotal = 0;
+let searchResultsMediumTotal = 0;
+let searchResultsViolationsTotal = 0;
+let searchResultsFacilitiesWithViolations = 0;
+let currentCenter = null;
+let currentRadius = 1.0;
+let currentAddress = '';
+let activeProgram = 'all';
+
+// Fallback map centers by state abbreviation — used when geocoding fails with no prior successful search
+const STATE_CENTERS = {
+  AL:[32.8,-86.8], AK:[64.2,-153.4], AZ:[34.3,-111.1], AR:[34.9,-92.4],
+  CA:[36.8,-119.4], CO:[39.0,-105.5], CT:[41.6,-72.7], DE:[38.9,-75.5],
+  FL:[27.8,-81.7], GA:[32.7,-83.4], HI:[20.2,-156.3], ID:[44.4,-114.5],
+  IL:[40.0,-89.2], IN:[39.9,-86.3], IA:[42.1,-93.5], KS:[38.5,-98.4],
+  KY:[37.5,-85.3], LA:[31.2,-91.8], ME:[45.2,-69.0], MD:[39.1,-76.8],
+  MA:[42.2,-71.5], MI:[43.3,-84.5], MN:[46.4,-93.1], MS:[32.7,-89.7],
+  MO:[38.5,-92.5], MT:[46.9,-110.4], NE:[41.5,-99.9], NV:[38.3,-117.1],
+  NH:[43.7,-71.6], NJ:[40.1,-74.5], NM:[34.5,-106.1], NY:[42.9,-75.5],
+  NC:[35.5,-79.4], ND:[47.5,-100.5], OH:[40.4,-82.8], OK:[35.6,-97.5],
+  OR:[44.1,-120.5], PA:[40.9,-77.8], RI:[41.7,-71.5], SC:[33.8,-81.2],
+  SD:[44.4,-100.2], TN:[35.7,-86.7], TX:[31.0,-99.3], UT:[39.3,-111.1],
+  VT:[44.1,-72.7], VA:[37.4,-79.5], WA:[47.4,-120.6], WV:[38.6,-80.5],
+  WI:[44.3,-89.8], WY:[43.0,-107.6], DC:[38.9,-77.0],
+};
+let currentPage = 1;     // 1-based page number
+let totalPages = 1;
+let currentSortBy = 'distance';  // tracks active sort across pages
+let hideScoreZero = false;  // when true, exclude score-0 registry-only facilities
+
+/* ── Title-case facility names ── */
+const TITLE_KEEP_UPPER = new Set([
+  'EPA','LLC','LP','LLP','INC','CO','LTD','USA','US','CVS','BMW','MSO','IBM','DBA','ST','DR','AVE','BLVD','RD','LN','PL','HWY',
+  'AT&T','UPS','DHL','UST','LUST','RCRA','CWA','CAA','SDWA','NPDES','WWTP',
+  'PCB','PFAS','TCEQ','DEQ','DEP','DEC','DNR','ADEM','DHEC','EGLE','CDPHE',
+  'NMED','IDEM','TDEC','KDHE','SQG','TSD','POTW','WM','BP','II','III','IV',
+  'PM','TX','CA','NY','NJ','FL','PA','OH','IL','MI','VA','NC','SC','GA','DC',
+  'WV','RI','CT','MA','NH','VT','ME','MD','DE','AK','HI','MT','WY','ND',
+  'SD','NE','KS','OK','MN','IA','MO','AR','LA','WI','TN','MS','AL','KY','IN',
+]);
+const TITLE_LOWER = new Set(['of','at','and','the','in','for','to','with','by','on','or','a','an']);
+function cleanPrograms(p) {
+  if (!p) return '';
+  return p.split(',').map(function(s) { return s.trim(); })
+    .filter(function(s) { return s && s.toUpperCase() !== 'NONE SPECIFIED'; })
+    .join(', ');
+}
+function programsHtml(p, state) {
+  if (!p) return '';
+  var codes = p.split(',').map(function(s) { return s.trim(); })
+    .filter(function(s) { return s && s.toUpperCase() !== 'NONE SPECIFIED'; });
+  if (!codes.length) return '';
+  var isTX = state && state.toUpperCase() === 'TX';
+  return codes.map(function(code) {
+    var upper = code.toUpperCase();
+    var fullName = PROGRAM_NAMES[upper];
+    if (fullName) {
+      var display = (isTX && _TCEQ_CODES[upper]) ? fullName + ' (TCEQ)' : fullName;
+      return '<abbr title="' + escHtml(code) + '">' + escHtml(display) + '</abbr>';
+    }
+    return escHtml(code);
+  }).join(', ');
+}
+function matchesProgram(programs, filter, facility) {
+  if (filter === 'all' || !filter) return true;
+  if (filter === 'State') {
+    // State filter: match facilities from any state-level source (non-EPA)
+    var src = (facility && facility.source || '').toLowerCase();
+    var uSrc = (facility && facility.unified_sources || '').toLowerCase();
+    return (src && src.indexOf('epa_') !== 0) || uSrc.split(',').some(function(s) { return s.trim() && s.trim().indexOf('epa_') !== 0; });
+  }
+  if (!programs) return false;
+  if (filter === 'Superfund') {
+    var p = programs.toLowerCase();
+    return p.indexOf('superfund') !== -1 || p.indexOf('sems') !== -1 || p.indexOf('npl') !== -1 || p.indexOf('cerclis') !== -1;
+  }
+  if (filter === 'LUST/UST') {
+    var p = programs.toLowerCase();
+    return /\blust\b/.test(p) || /\bust\b/.test(p) || p.indexOf('underground storage tank') !== -1 || p.indexOf('leaking underground storage') !== -1
+      || /\bpstreg\b/.test(p) || /\blpstrmd\b/.test(p) || /\bstageii\b/.test(p);
+  }
+  // RCRA CA: Corrective Action facilities — active mandated hazardous waste cleanup
+  if (filter === 'RCRA CA') {
+    return programs.indexOf('RCRA CA') !== -1;
+  }
+  // RCRA: generators/handlers — also match TCEQ equivalents, but exclude RCRA CA
+  // (corrective action sites have their own filter chip)
+  if (filter === 'RCRA') {
+    var p = programs.toUpperCase();
+    return (p.indexOf('RCRA') !== -1 && p.indexOf('RCRA CA') === -1) || /\bIHW\b/.test(p) || /\bIHWCA\b/.test(p) || /\bHW\b/.test(p);
+  }
+  // CAA: also match TCEQ air permit programs
+  if (filter === 'CAA') {
+    var p = programs.toUpperCase();
+    return p.indexOf('CAA') !== -1 || /\bAIRNSR\b/.test(p) || /\bAIR\b/.test(p) || /\bSTAGEII\b/.test(p) || /\bIOP\b/.test(p);
+  }
+  // CWA: also match TCEQ water/stormwater permit programs
+  if (filter === 'CWA') {
+    var p = programs.toUpperCase();
+    return p.indexOf('CWA') !== -1 || /\bWWPERMIT\b/.test(p) || /\bSTORM\b/.test(p) || /\bSDA\b/.test(p) || /\bCWCP\b/.test(p);
+  }
+  return programs.indexOf(filter) !== -1;
+}
+// Returns true if the facility is enrolled in SEMS/Superfund (via source, unified_sources, or programs).
+// SEMS enrollment means contamination review status — not a clean bill of health.
+function isSemsEnrolled(f) {
+  var src = (f.source || '').toLowerCase();
+  var unifiedSrc = (f.unified_sources || '').toLowerCase();
+  var progs = (f.programs || '').toLowerCase();
+  return src === 'epa_sems'
+    || unifiedSrc.indexOf('epa_sems') !== -1
+    || progs.indexOf('superfund') !== -1
+    || progs.indexOf('sems') !== -1
+    || progs.indexOf('npl') !== -1
+    || progs.indexOf('cerclis') !== -1;
+}
+// Returns true if the facility is on the NJ Known Contaminated Site List.
+// KCSL sites have confirmed or suspected contamination requiring investigation or remediation —
+// they are RECs by definition and should not show generic enrollment language.
+function isKcslEnrolled(f) {
+  var progs = (f.programs || '').toLowerCase();
+  return /\bkcsl\b/.test(progs);
+}
+// Returns true if the facility is in the RCRA Corrective Action program.
+// CA sites are undergoing EPA-mandated hazardous waste cleanup — automatic RECs.
+function isRcraCAEnrolled(f) {
+  return (f.programs || '').indexOf('RCRA CA') !== -1;
+}
+// Returns true if the facility is enrolled in an active contamination cleanup program
+// (VCP, IHWCA, RCRA CA, etc.) — distinct from routine regulatory enrollment.
+// These are RECs under ASTM E1527-21: documented releases requiring supervised cleanup.
+// SEMS and KCSL are excluded here because they have their own dedicated badge logic.
+function isCleanupProgramEnrolled(f) {
+  var progs = (f.programs || '').toUpperCase();
+  return /\bVCP\b/.test(progs)
+    || /\bIHWCA\b/.test(progs)
+    || progs.indexOf('RCRA CA') !== -1;
+}
+// Returns true if the facility is enrolled in TCEQ Petroleum Storage Tank programs.
+// PST enrollment (PSTREG, PSTNR, USTOL) signals on-site petroleum storage — an inherent
+// UST contamination risk regardless of violation history. These facilities should not
+// receive the "Checked and appears clean" confidence label.
+function isPstEnrolled(f) {
+  var progs = (f.programs || '').toUpperCase();
+  return /\bPSTREG\b/.test(progs) || /\bPSTNR\b/.test(progs) || /\bUSTOL\b/.test(progs) || /\bSTAGEII\b/.test(progs);
+}
+var PFAS_SOURCES = ['epa_pfas','epa_ucmr','mi_pfas','nj_pfas','wi_pfas','oh_pfas','il_pfas'];
+function isPfas(f) {
+  var src = (f.source || '').toLowerCase();
+  if (PFAS_SOURCES.indexOf(src) !== -1) return true;
+  var unified = (f.unified_sources || '').toLowerCase();
+  for (var i = 0; i < PFAS_SOURCES.length; i++) {
+    if (unified.indexOf(PFAS_SOURCES[i]) !== -1) return true;
+  }
+  if ((f.programs || '').toLowerCase().indexOf('pfas') !== -1) return true;
+  if (src === 'fl_dep_bf' && (f.source_id || '').indexOf('pfas-') === 0) return true;
+  return false;
+}
+/* ── Staleness: returns year (number) if latest_violation_date is older than
+   STALE_YEARS, or null if data is recent/absent/sentinel ── */
+function facilityStaleYear(f) {
+  var lvd = f.latest_violation_date;
+  if (!lvd) return null;
+  var d = new Date(lvd);
+  var year = d.getFullYear();
+  // Reject sentinel/placeholder dates (year 3000+)
+  if (year > new Date().getFullYear() + 5) return null;
+  var yearsAgo = (Date.now() - d.getTime()) / (365.25 * 24 * 3600 * 1000);
+  return yearsAgo >= STALE_YEARS ? year : null;
+}
+function titleCase(s) {
+  if (!s) return '';
+  // If not ALL-CAPS, return as-is (already mixed case from source)
+  if (s !== s.toUpperCase()) return s;
+  // Handle hyphenated words by splitting on hyphens too
+  var words = s.split(/(\s+|-)/);
+  return words.map(function(w, idx) {
+    if (/^\s+$/.test(w) || w === '-') return w;
+    // Strip trailing punctuation for set lookups (e.g. "CA," → "CA")
+    var core = w.replace(/[,.:;]+$/, '');
+    var suffix = w.slice(core.length);
+    var upper = core.toUpperCase();
+    var lower = core.toLowerCase();
+    if (TITLE_KEEP_UPPER.has(upper)) return upper + suffix;
+    // Lowercase small words except at start of name
+    if (idx > 0 && TITLE_LOWER.has(lower)) return lower + suffix;
+    if (/^\d/.test(w)) return w;
+    return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+  }).join('');
+}
+
+/* ── Display name with address fallback ── */
+function facDisplayName(f) {
+  var name = f.name ? f.name.trim() : '';
+  if (name && name.toLowerCase() !== 'unknown') return titleCase(name);
+  var addr = f.address ? f.address.trim() : '';
+  if (addr) {
+    var progs = f.programs ? f.programs.split(',')[0].trim() : '';
+    if (progs && progs.toUpperCase() !== 'NONE SPECIFIED') return progs + ' Site at ' + addr;
+    return addr;
+  }
+  return 'Unnamed Facility';
+}
+
+/* ── Format address for display — returns '' when only state/zip available ── */
+function formatAddress(f) {
+  var addr = f.address ? titleCase(f.address.trim()) : '';
+  var city = f.city ? titleCase(f.city.trim()) : '';
+  if (!addr && !city) return '';
+  return [addr, city, f.state, f.zip_code].filter(Boolean).join(', ');
+}
+
+/* ── Client-side dedup by canonical_id and address ── */
+function deduplicateResults(items) {
+  var seen = {};
+  var seenCanonical = {};
+  var out = [];
+  for (var i = 0; i < items.length; i++) {
+    var f = items[i];
+    if (f.canonical_id && seenCanonical[f.canonical_id]) continue;
+    if (f.canonical_id) seenCanonical[f.canonical_id] = true;
+    var key = [(f.name || '').toUpperCase(), (f.address || '').toUpperCase()]
+      .join('|').replace(/\s+/g, ' ').trim();
+    if (!key || key === '|' || !seen[key]) {
+      if (key && key !== '|') seen[key] = true;
+      out.push(f);
+    }
+  }
+  return out;
+}
+
+/* ── Filter bad violation display values ── */
+function cleanViolationType(v) {
+  var t = v.violation_type || v.type_short || '';
+  var trimmed = t.trim();
+  if (/^(yes|no|true|false)$/i.test(trimmed)) return v.program_area || 'Violation';
+  // "CWA Violation: Yes" / "CAA Violation: No" — extract the program prefix
+  var compound = trimmed.match(/^(\S+)\s+Violation:\s*(yes|no)$/i);
+  if (compound) return compound[1];
+  return t || 'N/A';
+}
+function cleanViolationDesc(v) {
+  var d = v.description || '';
+  var trimmed = d.trim();
+  if (/^(on|off|partial|yes|no|true|false|n\/a)$/i.test(trimmed)) return '';
+  // Strip raw code prefixes like "3014=E. COLI; 7500=Public Notice"
+  if (/\d{3,5}[=:]/.test(trimmed)) {
+    var parts = trimmed.split(/;\s*/);
+    var cleaned = parts.map(function(part) {
+      var m = part.match(/^\d{3,5}[=:]\s*(.+)$/);
+      return m ? titleCase(m[1]) : part;
+    }).filter(Boolean);
+    if (cleaned.length > 0) return cleaned.join('; ');
+  }
+  return d;
+}
+
+var VDESC_LIMIT = 120;
+
+function buildDescHtml(text, idx) {
+  if (!text) return '';
+  if (text.length <= VDESC_LIMIT) return escHtml(text);
+  var short = text.slice(0, VDESC_LIMIT).replace(/\s+\S*$/, '').trimEnd();
+  return '<span class="desc-short-' + idx + '">'
+    + escHtml(short)
+    + '\u2026 <button class="desc-toggle" onclick="toggleVDesc(' + idx + ');return false;">Show more</button>'
+    + '</span>'
+    + '<span class="desc-full-' + idx + '" style="display:none">'
+    + escHtml(text)
+    + ' <button class="desc-toggle" onclick="toggleVDesc(' + idx + ');return false;">Show less</button>'
+    + '</span>';
+}
+
+function toggleVDesc(idx) {
+  var tbody = document.getElementById('drawer-violations-body');
+  if (!tbody) return;
+  var shortEl = tbody.querySelector('.desc-short-' + idx);
+  var fullEl = tbody.querySelector('.desc-full-' + idx);
+  if (!shortEl || !fullEl) return;
+  var expanded = shortEl.style.display === 'none';
+  shortEl.style.display = expanded ? '' : 'none';
+  fullEl.style.display = expanded ? 'none' : '';
+}
+
+/* ── ASTM database coverage panel ── */
+var ASTM_DATABASES = [
+  { astm: 'NPL', full: 'National Priorities List (Superfund)', covered: true },
+  { astm: 'CERCLIS/SEMS', full: 'Superfund Enterprise Mgmt System', covered: true },
+  { astm: 'RCRA TSDF', full: 'Treatment, Storage & Disposal', covered: true },
+  { astm: 'RCRA CA/CORRACTS', full: 'Corrective Action', covered: true },
+  { astm: 'RCRA Generators', full: 'SQG / LQG / VSQG', covered: true },
+  { astm: 'ECHO', full: 'Enforcement & Compliance History', covered: true },
+  { astm: 'CWA/NPDES', full: 'Clean Water Act Permits', covered: true },
+  { astm: 'CAA', full: 'Clean Air Act Compliance', covered: true },
+  { astm: 'SDWIS', full: 'Safe Drinking Water', covered: true },
+  { astm: 'LUST', full: 'Leaking Underground Storage Tanks', covered: true },
+  { astm: 'UST', full: 'Underground Storage Tanks', covered: true },
+  { astm: 'VCP', full: 'Voluntary Cleanup Programs', covered: true },
+  { astm: 'Brownfields', full: 'EPA Brownfields Program', covered: true },
+  { astm: 'State Equivalent', full: 'State Environmental Agencies', covered: true },
+  { astm: 'ERNS', full: 'Emergency Response Notification', covered: false },
+  { astm: 'IC/EC', full: 'Institutional/Engineering Controls', covered: false },
+  { astm: 'FTTS/FURS', full: 'FIFRA/TSCA Tracking', covered: false },
+];
+
+function toggleAstmPanel() {
+  var panel = document.getElementById('astm-coverage-panel');
+  var arrow = document.getElementById('astm-arrow');
+  if (panel) panel.classList.toggle('hidden');
+  if (arrow) arrow.classList.toggle('open');
+}
+
+function toggleProgramFilters() {
+  var panel = document.getElementById('program-filters');
+  var btn = document.getElementById('filter-toggle-btn');
+  panel.classList.toggle('hidden');
+  btn.classList.toggle('active');
+  btn.innerHTML = panel.classList.contains('hidden') ? 'Programs &#9660;' : 'Programs &#9650;';
+}
+
+function renderAstmPanel() {
+  var panel = document.getElementById('astm-coverage-panel');
+  if (!panel) return;
+  var html = '<div class="astm-grid">';
+  ASTM_DATABASES.forEach(function(db) {
+    if (db.covered) {
+      html += '<div class="astm-row"><span class="astm-check">&#10003;</span> '
+        + '<span class="astm-db-name">' + escHtml(db.astm) + '</span> '
+        + '<span class="astm-source">' + escHtml(db.full) + '</span></div>';
+    } else {
+      html += '<div class="astm-row"><span class="astm-miss">&mdash;</span> '
+        + '<span class="astm-db-name" style="opacity:0.5">' + escHtml(db.astm) + '</span> '
+        + '<span class="astm-source" style="opacity:0.5">' + escHtml(db.full) + '</span></div>';
+    }
+  });
+  html += '</div>';
+  html += '<div style="margin-top:0.4rem;font-size:0.65rem;color:var(--text-muted)">All 50 states + DC covered via EPA federal sources. 16 states have additional dedicated state agency connectors for deeper coverage.</div>';
+  panel.innerHTML = html;
+}
+
+/* ── Header stats ── */
+
+async function loadHeaderStats() {
+  try {
+    var res = await fetch(API + '/stats');
+    if (!res.ok) return;
+    var data = await res.json();
+    var fac = data.total_facilities || 0;
+    var src = (data.sources || []).length;
+    if (fac <= 0) return;
+    var facLabel;
+    if (fac >= 1e6) {
+      facLabel = (fac / 1e6).toFixed(1).replace(/\.0$/, '') + 'M+';
+    } else if (fac >= 1e3) {
+      facLabel = Math.floor(fac / 1e3) + 'K+';
+    } else {
+      facLabel = fac.toLocaleString();
+    }
+    var text = facLabel + ' facilities';
+    if (src > 0) text += '\u2002\u00b7\u2002' + src + ' source' + (src !== 1 ? 's' : '');
+    var el = document.getElementById('brand-stats');
+    if (el) el.textContent = text;
+    var ds = document.getElementById('disclaimer-stats');
+    if (ds && text) ds.textContent = text + '\u2002\u00b7';
+  } catch (e) {
+    // fallback: leave empty rather than show stale numbers
+  }
+}
+
+/* ── API status indicator ── */
+
+async function checkApiStatus() {
+  var dot = document.getElementById('api-status-dot');
+  var label = document.getElementById('api-status-label');
+  var statusEl = document.getElementById('api-status');
+  if (!dot || !label) return;
+  dot.className = 'api-status-dot checking';
+  label.textContent = '';
+  try {
+    var res = await fetch(API + '/ping', { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      dot.className = 'api-status-dot online';
+      label.textContent = 'API Online';
+      if (statusEl) statusEl.title = 'API is responding normally';
+    } else {
+      dot.className = 'api-status-dot offline';
+      label.textContent = 'API Degraded';
+      if (statusEl) statusEl.title = 'API returned an error (' + res.status + ')';
+    }
+  } catch (e) {
+    dot.className = 'api-status-dot offline';
+    label.textContent = 'API Offline';
+    if (statusEl) statusEl.title = 'API is not responding — searches may fail';
+  }
+}
+
+/* ── Init ── */
+
+function init() {
+  loadHeaderStats();
+  checkApiStatus();
+  initMap();
+  loadRecentSearches();
+  renderAstmPanel();
+  document.getElementById('search-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') performSearch();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeDrawer();
+  });
+  document.getElementById('btn-search').addEventListener('click', () => performSearch());
+  document.getElementById('btn-export').addEventListener('click', exportReport);
+  document.getElementById('btn-export-csv').addEventListener('click', exportCsv);
+  document.getElementById('sort-select').addEventListener('change', applySort);
+  document.getElementById('radius-select').addEventListener('change', function() {
+    if (currentAddress || currentCenter) { performSearch(1); }
+  });
+  // Event delegation for facility cards: survives innerHTML re-renders triggered by sort/filter.
+  document.getElementById('results-list').addEventListener('click', function(e) {
+    var card = e.target.closest('.facility-card');
+    if (!card) return;
+    var idx = parseInt(card.dataset.idx, 10);
+    if (!isNaN(idx)) selectFacility(idx);
+  });
+  var _nameFilterTimer = null;
+  document.getElementById('name-filter').addEventListener('input', function() {
+    // Debounce: wait 400ms after the user stops typing before re-fetching.
+    // This triggers a full server-side search so the name filter applies to
+    // the entire result set, not just the currently loaded page.
+    clearTimeout(_nameFilterTimer);
+    _nameFilterTimer = setTimeout(function() {
+      if (currentAddress || currentCenter) { performSearch(1); }
+    }, 400);
+  });
+  document.querySelectorAll('.pf-chip').forEach(function(chip) {
+    chip.addEventListener('click', function() {
+      document.querySelectorAll('.pf-chip').forEach(function(c) { c.classList.remove('active'); });
+      chip.classList.add('active');
+      activeProgram = chip.dataset.program;
+      // Re-fetch server-side so the total reflects all pages, not just the current page.
+      if (currentAddress || currentCenter) { performSearch(1); }
+    });
+  });
+  document.getElementById('chk-hide-score-zero').addEventListener('change', function() {
+    hideScoreZero = this.checked;
+    var label = document.getElementById('pf-toggle-relevant');
+    if (label) label.classList.toggle('active', hideScoreZero);
+    if (currentAddress || currentCenter) { performSearch(1); }
+  });
+  document.getElementById('drawer-overlay').addEventListener('click', closeDrawer);
+  document.getElementById('btn-drawer-close').addEventListener('click', closeDrawer);
+  document.getElementById('map').addEventListener('click', function(e) {
+    if (e.target.closest('.leaflet-marker-icon, .leaflet-interactive')) return;
+    closeDrawer();
+  });
+  // Integrations dropdown: click/touch + close on outside click
+  var dd = document.querySelector('.header-dropdown');
+  var ddBtn = document.querySelector('.header-dropdown-toggle');
+  if (dd && ddBtn) {
+    ddBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var open = dd.classList.toggle('open');
+      ddBtn.setAttribute('aria-expanded', open);
+    });
+    document.addEventListener('click', function(e) {
+      if (!dd.contains(e.target)) {
+        dd.classList.remove('open');
+        ddBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+  parseHash();
+}
+
+function initMap() {
+  map = L.map('map', { zoomControl: false, scrollWheelZoom: false }).setView([39.8, -98.5], 4);
+  // Ctrl+scroll to zoom (like Google Maps)
+  map.getContainer().addEventListener('wheel', function(e) {
+    if (e.ctrlKey || e.metaKey) { map.scrollWheelZoom.enable(); }
+    else { map.scrollWheelZoom.disable(); }
+  });
+  L.control.zoom({ position: 'topright' }).addTo(map);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    maxZoom: 19,
+    subdomains: 'abcd',
+  }).addTo(map);
+  markersLayer = L.layerGroup().addTo(map);
+
+  var legend = L.control({ position: 'bottomright' });
+  legend.onAdd = function() {
+    var div = L.DomUtil.create('div', 'map-legend');
+    div.innerHTML =
+      '<span style="background:#dc2626"></span>High' +
+      '<span style="background:#d97706"></span>Medium' +
+      '<span style="background:#059669"></span>Low' +
+      '<span style="background:#9ca3af"></span>Unscored';
+    return div;
+  };
+  legend.addTo(map);
+}
+
+/* ── Search ── */
+
+var _searchGen = 0;  // generation counter to discard stale responses
+var _isDemoSearch = false;  // set true before auto-demo search so failures show empty state
+
+async function performSearch(page) {
+  const address = document.getElementById('search-input').value.trim();
+  if (!address) return;
+  var radiusEl = document.getElementById('radius-select');
+  var radius = parseFloat(radiusEl.value);
+  if (isNaN(radius) || radius <= 0) { radiusEl.value = '1'; radius = 1; }
+  const nameFilter = document.getElementById('name-filter').value.trim();
+
+  // Detect lat/lon coordinate input: "29.376, -94.912" or "29.376 -94.912"
+  var coordMatch = address.match(/^\s*(-?\d{1,3}(?:\.\d+)?)\s*[,\s]\s*(-?\d{1,3}(?:\.\d+)?)\s*$/);
+  if (coordMatch) {
+    var coordLat = parseFloat(coordMatch[1]);
+    var coordLon = parseFloat(coordMatch[2]);
+    if (coordLat >= -90 && coordLat <= 90 && coordLon >= -180 && coordLon <= 180) {
+      return _performSearchByCoords(coordLat, coordLon, radius, nameFilter, page, address);
+    }
+  }
+
+  currentAddress = address;
+  currentRadius = radius;
+
+  // Reset to page 1 if this is a new search (no page argument)
+  if (page === undefined || page === null) { page = 1; }
+  currentPage = page;
+
+  const gen = ++_searchGen;  // capture this search's generation
+  const demoSearch = _isDemoSearch;  // capture and clear demo flag
+  _isDemoSearch = false;
+
+  closeDrawer();
+  if (page === undefined || page === null) {
+    activeProgram = 'all';
+    document.querySelectorAll('.pf-chip').forEach(function(c) { c.classList.remove('active'); });
+    document.querySelector('.pf-chip[data-program="all"]').classList.add('active');
+  }
+  showLoading();
+  hideAllStates();
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(function() { controller.abort(); }, 15000);
+
+  try {
+    var offset = (currentPage - 1) * PAGE_SIZE;
+    let url = `${API}/search?address=${encodeURIComponent(address)}&radius=${radius}&limit=${PAGE_SIZE}&offset=${offset}`;
+    if (nameFilter) url += `&name=${encodeURIComponent(nameFilter)}`;
+    if (activeProgram && activeProgram !== 'all') url += `&program=${encodeURIComponent(activeProgram)}`;
+    if (hideScoreZero) url += '&min_score=1';
+    // Pass sort to the server so sort operates across all pages, not just current page
+    if (currentSortBy === 'violations') url += '&order_by=violation_count&order_dir=desc';
+    else if (currentSortBy === 'risk') url += '&order_by=risk_score&order_dir=desc';
+    else if (currentSortBy === 'name') url += '&order_by=name&order_dir=asc';
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (gen !== _searchGen) return;  // a newer search was started; discard
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      let errMsg, errHints;
+      if (err.detail && typeof err.detail === 'object' && err.detail.message) {
+        errMsg = err.detail.message;
+        errHints = err.detail.suggestions || [];
+      } else if (typeof err.detail === 'string') {
+        errMsg = err.detail;
+      } else {
+        errMsg = 'Request failed (' + res.status + ')';
+      }
+      const ex = new Error(errMsg);
+      ex.hints = errHints || [];
+      throw ex;
+    }
+    const data = await res.json();
+    if (gen !== _searchGen) return;  // discard stale response
+    currentCenter = data.center;
+    searchResultsApiTotal = data.total || 0;
+    totalPages = Math.ceil(searchResultsApiTotal / PAGE_SIZE) || 1;
+    searchResultsApiTruncated = totalPages > 1;
+    // Aggregate stats cover all pages (API computes these across the full result set)
+    searchResultsHighTotal = data.total_high || 0;
+    searchResultsMediumTotal = data.total_medium || 0;
+    searchResultsViolationsTotal = data.total_violations || 0;
+    searchResultsFacilitiesWithViolations = data.facilities_with_violations || 0;
+    searchResults = deduplicateResults(data.items || []);
+    if (page === 1) {
+      saveSearch(address, radius);
+      updateHash(address, radius);
+    }
+    // Sync search input to prevent desync after hash/rapid navigation
+    document.getElementById('search-input').value = address;
+    renderResults();
+    renderMap();
+  } catch (e) {
+    clearTimeout(timeoutId);
+    if (gen !== _searchGen) return;
+    if (demoSearch) {
+      // Auto-demo search on page load failed — show welcome empty state instead of error
+      document.getElementById('search-input').value = '';
+      document.getElementById('empty-state').classList.remove('hidden');
+      searchResults = [];
+    } else if (e.name === 'AbortError') {
+      showError('Request timed out \u2014 the server may be experiencing issues. Please try again.');
+      searchResults = [];
+    } else {
+      showError(e.message, e.hints || []);
+      searchResults = [];
+    }
+  } finally {
+    if (gen === _searchGen) hideLoading();
+  }
+}
+
+/* ── Coordinate-based search ── */
+
+async function _performSearchByCoords(lat, lon, radius, nameFilter, page, label) {
+  currentAddress = label || (lat + ', ' + lon);
+  currentRadius = radius;
+  if (page === undefined || page === null) { page = 1; }
+  currentPage = page;
+  const gen = ++_searchGen;
+  closeDrawer();
+  showLoading();
+  hideAllStates();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(function() { controller.abort(); }, 15000);
+  try {
+    var offset = (page - 1) * PAGE_SIZE;
+    let url = `${API}/search?lat=${lat}&lon=${lon}&radius=${radius}&limit=${PAGE_SIZE}&offset=${offset}`;
+    if (nameFilter) url += `&name=${encodeURIComponent(nameFilter)}`;
+    if (activeProgram && activeProgram !== 'all') url += `&program=${encodeURIComponent(activeProgram)}`;
+    if (hideScoreZero) url += '&min_score=1';
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (gen !== _searchGen) return;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const errMsg = typeof err.detail === 'string' ? err.detail : 'Request failed (' + res.status + ')';
+      throw new Error(errMsg);
+    }
+    const data = await res.json();
+    if (gen !== _searchGen) return;
+    currentCenter = data.center;
+    searchResultsApiTotal = data.total || 0;
+    totalPages = Math.ceil(searchResultsApiTotal / PAGE_SIZE) || 1;
+    searchResultsApiTruncated = totalPages > 1;
+    searchResultsHighTotal = data.total_high || 0;
+    searchResultsMediumTotal = data.total_medium || 0;
+    searchResultsViolationsTotal = data.total_violations || 0;
+    searchResultsFacilitiesWithViolations = data.facilities_with_violations || 0;
+    searchResults = deduplicateResults(data.items || []);
+    if (page === 1) {
+      saveSearch(currentAddress, radius);
+      updateHash(currentAddress, radius);
+    }
+    renderResults();
+    renderMap();
+  } catch (e) {
+    clearTimeout(timeoutId);
+    if (gen !== _searchGen) return;
+    if (e.name === 'AbortError') {
+      showError('Request timed out \u2014 the server may be experiencing issues. Please try again.');
+    } else {
+      showError(e.message);
+    }
+    searchResults = [];
+  } finally {
+    if (gen === _searchGen) hideLoading();
+  }
+}
+
+/* ── Map rendering ── */
+
+function renderMap() {
+  markersLayer.clearLayers();
+  if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
+  if (centerMarker) { map.removeLayer(centerMarker); centerMarker = null; }
+  if (!currentCenter) return;
+
+  const icon = L.divIcon({ className: 'center-marker', iconSize: [14, 14], iconAnchor: [7, 7] });
+  centerMarker = L.marker([currentCenter.lat, currentCenter.lon], { icon: icon, interactive: false }).addTo(map);
+
+  radiusCircle = L.circle([currentCenter.lat, currentCenter.lon], {
+    radius: currentRadius * 1609.34,
+    fillColor: '#0891b2', fillOpacity: 0.05,
+    color: '#0891b2', weight: 1.5, dashArray: '6 4',
+  }).addTo(map);
+
+  const riskColors = { critical: '#7f1d1d', high: '#dc2626', medium: '#d97706', low: '#059669', unscored: '#9ca3af' };
+
+  searchResults.forEach(function(f, i) {
+    if (!f.lat || !f.lon) return;
+    if (!matchesProgram(f.programs, activeProgram, f)) return;
+    var level = f.risk_level || 'unscored';
+    var color = riskColors[level] || riskColors.unscored;
+    var r = level === 'critical' ? 8 : level === 'high' ? 7 : level === 'medium' ? 6 : 5;
+    var m = L.circleMarker([f.lat, f.lon], {
+      radius: r, fillColor: color, color: '#fff', weight: 1.5, fillOpacity: 0.85,
+    });
+    m.bindTooltip(escHtml(facDisplayName(f)), { direction: 'top', offset: [0, -6] });
+    m.on('click', function() { selectFacility(i); });
+    m._fIdx = i;
+    markersLayer.addLayer(m);
+  });
+
+  map.fitBounds(radiusCircle.getBounds(), { padding: [40, 40] });
+}
+
+/* ── Results panel ── */
+
+function renderResults() {
+  document.getElementById('empty-state').classList.add('hidden');
+  document.getElementById('error-state').classList.add('hidden');
+  document.getElementById('results-content').classList.remove('hidden');
+
+  var pageCount = searchResults.length;
+
+  // Summary row always shows totals across all pages (from API aggregate stats)
+  document.getElementById('stat-total').textContent = searchResultsApiTotal.toLocaleString();
+  document.getElementById('stat-high').textContent = searchResultsHighTotal.toLocaleString();
+  document.getElementById('stat-medium').textContent = searchResultsMediumTotal.toLocaleString();
+  document.getElementById('stat-violations').textContent = searchResultsFacilitiesWithViolations.toLocaleString();
+  var recLabel = document.getElementById('stat-violation-records');
+  if (recLabel) {
+    recLabel.textContent = searchResultsViolationsTotal > 0
+      ? '(' + searchResultsViolationsTotal.toLocaleString() + ' total records)'
+      : '';
+  }
+
+  // Target property identification — flag facilities at the search address
+  var tpBanner = document.getElementById('target-property-banner');
+  var tpFacilities = [];
+  for (var i = 0; i < pageCount; i++) {
+    if (searchResults[i].distance_miles !== undefined && searchResults[i].distance_miles <= 0.1) {
+      tpFacilities.push(searchResults[i]);
+    }
+  }
+  if (tpFacilities.length > 0) {
+    var tpHtml = '<div class="tp-label">Target property identified in ' + tpFacilities.length + ' database' + (tpFacilities.length > 1 ? 's' : '') + ':</div><div class="tp-facilities">';
+    tpFacilities.forEach(function(f) {
+      var src = (f.unified_sources || f.source || '').replace(/,/g, ', ');
+      tpHtml += '<div><span class="tp-facility-name">' + escHtml(facDisplayName(f)) + '</span> <span style="color:#64748b">(' + src + ')</span></div>';
+    });
+    tpHtml += '</div>';
+    tpBanner.className = 'target-property-banner tp-found';
+    tpBanner.innerHTML = tpHtml;
+  } else {
+    tpBanner.className = 'target-property-banner tp-clean';
+    tpBanner.textContent = 'Target property was not identified in any searched databases.';
+  }
+
+  var matchedEl = document.getElementById('matched-address');
+  var addrText = '';
+  if (currentCenter && currentCenter.matched_address) {
+    addrText = 'at ' + titleCase(currentCenter.matched_address);
+  }
+  matchedEl.textContent = addrText;
+
+  var warnEl = document.getElementById('geocode-warning');
+  if (warnEl) {
+    if (currentCenter && currentCenter.geocode_warning) {
+      warnEl.textContent = '\u26a0\ufe0f ' + currentCenter.geocode_warning;
+      warnEl.classList.add('visible');
+      if (currentCenter.geocode_quality === 'zip_centroid') {
+        warnEl.classList.add('critical');
+      } else {
+        warnEl.classList.remove('critical');
+      }
+    } else {
+      warnEl.textContent = '';
+      warnEl.classList.remove('visible');
+      warnEl.classList.remove('critical');
+    }
+  }
+
+  // Data freshness indicator
+  var latestUpdate = '';
+  for (var i = 0; i < pageCount; i++) {
+    var lu = searchResults[i].last_updated || '';
+    if (lu > latestUpdate) latestUpdate = lu;
+  }
+  var freshnessEl = document.getElementById('data-freshness');
+  if (latestUpdate) {
+    // Parse YYYY-MM-DD as a local date (not UTC) to avoid timezone-induced off-by-one.
+    // new Date("YYYY-MM-DD") parses as UTC midnight, which shifts the displayed date
+    // backward in negative-offset timezones (e.g. ET) and causes daysOld to be 1
+    // even on the same calendar day the data was ingested.
+    var dateOnly = latestUpdate.slice(0, 10);
+    var parts = dateOnly.split('-');
+    var luDate = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+    var todayLocal = new Date();
+    todayLocal.setHours(0, 0, 0, 0);
+    var daysOld = Math.round((todayLocal - luDate) / 86400000);
+    var dateStr = luDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    var freshnessText = daysOld === 0 ? 'Updated: today (' + dateStr + ')'
+      : daysOld === 1 ? 'Updated: yesterday (' + dateStr + ')'
+      : daysOld <= 7 ? 'Updated: ' + daysOld + 'd ago (' + dateStr + ')'
+      : 'Updated: ' + dateStr;
+    freshnessEl.textContent = freshnessText;
+    freshnessEl.classList.remove('hidden');
+  } else {
+    freshnessEl.classList.add('hidden');
+  }
+
+  document.getElementById('sort-select').value = currentSortBy;
+  var shown = renderResultsList();
+  updateFilteredHeader(shown);
+}
+
+/* ── Sorting ── */
+
+function applySort() {
+  closeDrawer();
+  var sortBy = document.getElementById('sort-select').value;
+  // Update sort state and re-fetch page 1 so sort operates across all pages server-side.
+  currentSortBy = sortBy;
+  performSearch(1);
+}
+
+function renderResultsList() {
+  var total = searchResults.length;
+  var list = document.getElementById('results-list');
+  list.setAttribute('data-sort', currentSortBy);
+  if (total === 0) {
+    var noResultsMsg = '<div class="no-results">No regulated facilities found within ' + currentRadius + ' miles of this address.</div>';
+    if (activeProgram === 'LUST/UST') {
+      noResultsMsg += '<div class="no-results-note">Federal UST data coverage varies by state \u2014 state-level LUST databases may contain additional records not shown here.</div>';
+    }
+    list.innerHTML = noResultsMsg;
+    return 0;
+  }
+
+  var html = '';
+  var shown = 0;
+  for (var i = 0; i < total; i++) {
+    var f = searchResults[i];
+    shown++;
+    var level = f.risk_level || 'unscored';
+    var riskText = level === 'unscored' ? 'Unscored'
+      : level.charAt(0).toUpperCase() + level.slice(1)
+        + (f.risk_score >= 0 ? ' · ' + f.risk_score : '');
+    var addr = formatAddress(f);
+    var addrClass = addr ? 'fc-address' : 'fc-address addr-unavailable';
+    var addrText = addr || 'Address not available';
+    var delay = Math.min(i * 25, 400);
+    html += '<div class="facility-card" data-idx="' + i + '" style="animation-delay:' + delay + 'ms">'
+      + '<div class="fc-header"><span class="fc-name">' + escHtml(facDisplayName(f)) + '</span>'
+      + '<span class="fc-distance">' + (f.sdwa_county_match ? 'county match &middot; ' + f.distance_miles + ' mi' : f.distance_miles + ' mi') + '</span></div>'
+      + '<div class="' + addrClass + '">' + escHtml(addrText) + '</div>';
+    if (f.sdwa_county_match) html += '<div class="fc-warning" title="Water system serves this county \u2014 treatment plant may be outside your search radius. Distance shown is to the treatment plant location.">&#9432; County service area match \u2014 plant may be outside radius</div>';
+    if (f.state_mismatch) html += '<div class="fc-warning" title="Listed state does not match search location — coordinates may reflect a mailing address">&#9888; Address/location mismatch</div>';
+    var industry = naicsLabel(f.naics_codes, f.name) || 'N/A';
+    html += '<div class="fc-industry">' + escHtml(industry) + '</div>';
+    var confClass = f.confidence === 'low' ? ' conf-low' : '';
+    var confMark = f.confidence === 'low' ? '*' : '';
+    var enrollmentOnly = f.confidence === 'moderate' && f.violation_count === 0 && (level === 'critical' || level === 'high' || level === 'medium');
+    var semsEnrolled = enrollmentOnly && isSemsEnrolled(f);
+    var kcslEnrolled = !semsEnrolled && enrollmentOnly && isKcslEnrolled(f);
+    var cleanupEnrolled = !semsEnrolled && !kcslEnrolled && enrollmentOnly && isCleanupProgramEnrolled(f);
+    var scoreTitle = (f.risk_score >= 0) ? 'Compliance score: ' + f.risk_score + '/100 — higher score = higher risk' : '';
+    if (semsEnrolled) scoreTitle = (f.risk_score >= 0 ? 'Score: ' + f.risk_score + '/100 — ' : '') + 'Superfund enrollment indicates contamination review status — absence of violations does not mean the site is clean';
+    else if (kcslEnrolled) scoreTitle = (f.risk_score >= 0 ? 'Score: ' + f.risk_score + '/100 — ' : '') + 'NJ Known Contaminated Site List — confirmed or suspected contamination on record';
+    else if (cleanupEnrolled) scoreTitle = (f.risk_score >= 0 ? 'Score: ' + f.risk_score + '/100 — ' : '') + 'Active contamination cleanup program — documented release requiring supervised remediation';
+    else if (enrollmentOnly) scoreTitle = (f.risk_score >= 0 ? 'Score: ' + f.risk_score + '/100 — ' : '') + 'Risk from regulatory program enrollment; no violations on record';
+    if (f.confidence === 'low') scoreTitle = (scoreTitle ? scoreTitle + ' — ' : '') + '* Limited data — score confidence is low';
+    html += '<div class="fc-meta"><span class="risk-badge risk-' + level + confClass + '" title="' + scoreTitle + '">' + riskText + confMark + '</span>';
+    if (f.violation_count > 0)
+      html += '<span class="vc-badge">' + f.violation_count + ' violation' + (f.violation_count !== 1 ? 's' : '') + '</span>';
+    else if (semsEnrolled)
+      html += '<span class="superfund-badge" title="Superfund enrollment indicates this site is under contamination review — absence of violations does not mean the site is clean">Superfund-listed</span>';
+    else if (kcslEnrolled)
+      html += '<span class="superfund-badge" title="NJ Known Contaminated Site List — confirmed or suspected contamination, not routine regulatory enrollment">KCSL-listed</span>';
+    else if (cleanupEnrolled)
+      html += '<span class="superfund-badge" title="Active contamination cleanup program — documented release requiring supervised remediation (REC under ASTM E1527-21)">active cleanup program</span>';
+    else if (enrollmentOnly)
+      html += '<span class="enroll-badge" title="This score reflects regulatory program enrollment, not a history of violations">enrolled, no violations</span>';
+    if (f.source_count > 1)
+      html += '<span class="source-badge" title="Tracked across ' + f.source_count + ' data sources">' + f.source_count + ' sources</span>';
+    if (isPfas(f))
+      html += '<span class="pfas-badge" title="PFAS (per- and polyfluoroalkyl substances) association identified from source data or regulatory programs">PFAS</span>';
+    var staleYear = facilityStaleYear(f);
+    if (staleYear !== null)
+      html += '<span class="stale-badge" title="Most recent source data for this facility is from ' + staleYear + ' \u2014 data may be significantly outdated">\u26a0 Data from ' + staleYear + '</span>';
+    html += '</div></div>';
+  }
+  if (shown === 0) {
+    html = '<div class="no-results">No ' + (activeProgram === 'all' ? '' : activeProgram + ' ') + 'facilities match the current filters.</div>';
+    if (activeProgram === 'LUST/UST') {
+      html += '<div class="no-results-note">Federal UST data coverage varies by state \u2014 state-level LUST databases may contain additional records not shown here.</div>';
+    }
+  }
+  var hasLowConf = searchResults.some(function(f) { return f.confidence === 'low'; });
+  if (hasLowConf && shown > 0) {
+    html += '<div class="conf-footnote">* Limited data — score confidence is low. <a href="/methodology.html" target="_blank">Learn more</a></div>';
+  }
+  list.innerHTML = html;
+  return shown;
+}
+
+/* ── Filtered header update ── */
+
+function updateFilteredHeader(shownCount) {
+  var titleEl = document.getElementById('results-title');
+  var totalFmt = searchResultsApiTotal.toLocaleString();
+  if (activeProgram !== 'all') {
+    // Server-filtered total — accurate across all pages, pagination still works
+    // SDWA uses county-level matching (service area), not strict radius, so adjust header copy
+    var sdwaScope = activeProgram === 'SDWA' ? ' in county service area' : ' within ' + currentRadius + ' mi';
+    var titleText = totalFmt + ' facilit' + (searchResultsApiTotal === 1 ? 'y' : 'ies') + ' (' + activeProgram + ')' + sdwaScope;
+    if (totalPages > 1) {
+      titleText += ' \u2014 page ' + currentPage + ' of ' + totalPages;
+    }
+    titleEl.textContent = titleText;
+    renderPagination();
+  } else {
+    // Unfiltered title and pagination
+    var unfiltered = totalFmt + ' facilit' + (searchResultsApiTotal === 1 ? 'y' : 'ies') + ' within ' + currentRadius + ' mi';
+    if (totalPages > 1) {
+      unfiltered += ' \u2014 page ' + currentPage + ' of ' + totalPages;
+    }
+    titleEl.textContent = unfiltered;
+    renderPagination();
+  }
+}
+
+/* ── Pagination ── */
+
+function renderPagination() {
+  var bar = document.getElementById('pagination-bar');
+  if (totalPages <= 1) { bar.classList.add('hidden'); return; }
+  bar.classList.remove('hidden');
+
+  while (bar.firstChild) bar.removeChild(bar.firstChild);
+
+  function mkBtn(label, page, isActive, isDisabled) {
+    var btn = document.createElement('button');
+    btn.className = 'pg-btn' + (isActive ? ' active' : '');
+    btn.textContent = label;
+    btn.disabled = !!isDisabled;
+    if (!isDisabled) btn.addEventListener('click', function() { goToPage(page); });
+    return btn;
+  }
+
+  var p = currentPage;
+  var tp = totalPages;
+
+  bar.appendChild(mkBtn('\u2039 Prev', p - 1, false, p === 1));
+
+  // Build compact page list: always first, last, current ±1; ellipsis gaps
+  var shown = [];
+  var candidates = [1, p - 1, p, p + 1, tp];
+  for (var ci = 0; ci < candidates.length; ci++) {
+    var n = candidates[ci];
+    if (n >= 1 && n <= tp && shown.indexOf(n) === -1) shown.push(n);
+  }
+  shown.sort(function(a, b) { return a - b; });
+
+  var prev = 0;
+  for (var si = 0; si < shown.length; si++) {
+    var n = shown[si];
+    if (prev && n > prev + 1) {
+      var ellipsis = document.createElement('span');
+      ellipsis.className = 'pg-ellipsis';
+      ellipsis.textContent = '\u2026';
+      bar.appendChild(ellipsis);
+    }
+    bar.appendChild(mkBtn(String(n), n, n === p, false));
+    prev = n;
+  }
+
+  bar.appendChild(mkBtn('Next \u203a', p + 1, false, p === tp));
+
+  var offset = (p - 1) * PAGE_SIZE;
+  var end = Math.min(offset + PAGE_SIZE, searchResultsApiTotal);
+  var info = document.createElement('span');
+  info.className = 'pg-info';
+  info.textContent = (offset + 1).toLocaleString() + '\u2013' + end.toLocaleString() + ' of ' + searchResultsApiTotal.toLocaleString();
+  bar.appendChild(info);
+}
+
+function goToPage(page) {
+  if (page < 1 || page > totalPages) return;
+  var list = document.getElementById('results-list');
+  list.scrollTop = 0;
+  performSearch(page);
+}
+
+/* ── Facility selection & drawer ── */
+
+function selectFacility(idx) {
+  var f = searchResults[idx];
+  if (!f) return;
+
+  document.querySelectorAll('.facility-card').forEach(function(c) { c.classList.remove('selected'); });
+  var card = document.querySelector('.facility-card[data-idx="' + idx + '"]');
+  if (card) {
+    card.classList.add('selected');
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  if (f.lat && f.lon) map.setView([f.lat, f.lon], Math.max(map.getZoom(), 15));
+
+  openDrawer(f);
+}
+
+async function openDrawer(f) {
+  var drawer = document.getElementById('drawer');
+  var overlay = document.getElementById('drawer-overlay');
+
+  document.getElementById('drawer-name').textContent = facDisplayName(f);
+  var drawerAddr = formatAddress(f);
+  var drawerAddrEl = document.getElementById('drawer-address');
+  if (drawerAddr) {
+    drawerAddrEl.textContent = drawerAddr;
+    drawerAddrEl.style.fontStyle = '';
+    drawerAddrEl.style.color = '';
+  } else {
+    drawerAddrEl.textContent = 'Address not available — see source record';
+    drawerAddrEl.style.fontStyle = 'italic';
+    drawerAddrEl.style.color = 'var(--text-muted)';
+  }
+  var srcText = f.unified_sources
+    ? f.unified_sources.split(',').map(function(s) { return _sourceName(s.trim()); }).join(', ')
+    : _sourceName(f.source || 'N/A');
+  if (f.source_count > 1) srcText += ' (' + f.source_count + ' sources)';
+  document.getElementById('drawer-source').textContent = srcText;
+  document.getElementById('drawer-programs').innerHTML = programsHtml(f.programs, f.state) || 'N/A';
+  var industryEl = document.getElementById('drawer-industry');
+  industryEl.textContent = naicsLabel(f.naics_codes, f.name) || 'N/A';
+  var naicsDisplay = f.naics_codes && f.naics_codes !== '999999';
+  if (naicsDisplay) {
+    var naicsRawSpan = document.createElement('span');
+    naicsRawSpan.style.cssText = 'color:var(--text-muted);font-size:0.75em';
+    naicsRawSpan.textContent = ' (NAICS ' + f.naics_codes + ')';
+    industryEl.appendChild(naicsRawSpan);
+  }
+  if (f.sdwa_county_match) {
+    document.getElementById('drawer-distance').textContent = f.distance_miles + ' mi (county service area match \u2014 plant outside radius)';
+  } else {
+    document.getElementById('drawer-distance').textContent = f.distance_miles + ' mi from search center';
+  }
+
+  // Last violation date with recency coloring
+  var lvd = f.latest_violation_date;
+  var lvdEl = document.getElementById('drawer-last-violation');
+  lvdEl.style.color = '';
+  lvdEl.title = '';
+  if (lvd) {
+    var d = new Date(lvd);
+    var maxYear = new Date().getFullYear() + 5;
+    if (d.getFullYear() > maxYear) {
+      // Sentinel/placeholder date (e.g. year 3000) — treat as unknown
+      lvdEl.textContent = '\u2014';
+      lvdEl.style.color = 'var(--text-muted)';
+    } else {
+    var daysAgo = Math.floor((Date.now() - d.getTime()) / 86400000);
+    var dateText = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    if (daysAgo < 180) { dateText += ' (recent)'; lvdEl.style.color = 'var(--risk-high)'; }
+    else if (daysAgo < 365) { dateText += ' (<1yr)'; lvdEl.style.color = 'var(--risk-medium)'; }
+    else if (daysAgo < 1095) { dateText += ' (1-3yr)'; lvdEl.style.color = 'var(--text-secondary)'; }
+    lvdEl.textContent = dateText;
+    }
+  } else if (isSemsEnrolled(f)) {
+    lvdEl.textContent = 'N/A \u2014 Superfund remediation (see EPA SEMS)';
+    lvdEl.style.color = 'var(--text-muted)';
+    lvdEl.title = 'Superfund sites are tracked via EPA SEMS, not ECHO \u2014 absence of violation records does not mean the site is clean';
+  } else if ((f.violation_count || 0) > 0) {
+    lvdEl.textContent = 'Date unavailable';
+    lvdEl.style.color = 'var(--text-muted)';
+    lvdEl.title = 'Violation records exist but dates were not reported by the source agency';
+  } else {
+    lvdEl.textContent = 'None on record';
+    lvdEl.style.color = 'var(--text-muted)';
+  }
+
+  // Staleness warning — shown when most recent source data is older than STALE_YEARS
+  var staleWarnEl = document.getElementById('drawer-stale-warning');
+  var drawerStaleYear = facilityStaleYear(f);
+  if (drawerStaleYear !== null) {
+    var staleDate = new Date(f.latest_violation_date);
+    var staleDateStr = staleDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    staleWarnEl.textContent = '\u26a0 Most recent data: ' + staleDateStr + ' \u2014 this facility\u2019s data may be significantly outdated.';
+    staleWarnEl.classList.remove('hidden');
+  } else {
+    staleWarnEl.classList.add('hidden');
+  }
+
+  // Source verification links — populated after detail fetch below
+  var srcLinksEl = document.getElementById('drawer-source-links');
+  while (srcLinksEl.firstChild) srcLinksEl.removeChild(srcLinksEl.firstChild);
+
+  var level = f.risk_level || 'unscored';
+  var scoreEl = document.getElementById('drawer-score');
+  var confLow = (f.confidence === 'low') ? ' conf-low' : '';
+  scoreEl.className = 'drawer-score risk-bg-' + level + confLow;
+  if (f.risk_score >= 0) {
+    scoreEl.title = 'Compliance Score: ' + f.risk_score + '/100 (higher score = higher risk)';
+    scoreEl.innerHTML = '<span class="score-value">' + f.risk_score + '</span><span class="score-label">Score</span>';
+  } else {
+    scoreEl.innerHTML = '<span class="score-label" style="font-size:0.75rem">N/A</span>';
+  }
+
+  document.getElementById('score-direction-hint').style.display = (f.risk_score >= 0) ? '' : 'none';
+
+  var rlEl = document.getElementById('drawer-risk-level');
+  rlEl.textContent = level.toUpperCase();
+  rlEl.className = 'di-value risk-text-' + level;
+  document.getElementById('drawer-confidence').textContent = confidenceLabel(f.confidence, level, f);
+
+  // Score breakdown
+  var sbEl = document.getElementById('score-breakdown');
+  if (f.risk_score >= 0) {
+    var factors = [];
+    var score = f.risk_score;
+    var remaining = score;  // score IS the risk/deduction total (0=clean, 100=worst)
+    // Known deduction components
+    var naicsDed = f.naics_tier === 1 ? 15 : f.naics_tier === 2 ? 10 : f.naics_tier === 3 ? 5 : 0;
+    var progDed = f.program_count >= 4 ? 12 : f.program_count === 3 ? 8 : f.program_count === 2 ? 5 : 0;
+    // Program-type risk deduction — mirrors backend _program_type_risk_adjustment()
+    var progTypeDed = 0;
+    var progs = (f.programs || '').toLowerCase();
+    // Word-boundary helper for short codes (SA, ER, RR, etc.)
+    function progMatch(kw) { return new RegExp('\\b' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(progs); }
+    // High-risk programs (max deduction wins, no stacking)
+    var ptCandidates = [];
+    if (progMatch('federal superfund') || progMatch('npl') || progMatch('national priorities list')) ptCandidates.push(30);
+    if (progMatch('superfund') && !progMatch('federal superfund')) ptCandidates.push(25);
+    if (progMatch('cerclis') || progMatch('sems')) ptCandidates.push(20);
+    if (progMatch('state response') || progMatch('known contamination')) ptCandidates.push(20);
+    if (progMatch('rr')) ptCandidates.push(20);
+    // Moderate-risk programs
+    if (progMatch('vcp') || progMatch('voluntary cleanup') || progMatch('lust') || progMatch('leaking underground storage')
+      || progMatch('corrective action') || progMatch('corracts') || progMatch('rcra ca') || progMatch('remediation') || progMatch('cleanup')
+      || progMatch('post rem') || progMatch('confirmed leaking') || progMatch('contamination') || progMatch('pfas')) ptCandidates.push(15);
+    if (progMatch('sa') || progMatch('vap')) ptCandidates.push(15);
+    if (progMatch('erp')) ptCandidates.push(15);
+    if (progMatch('brownfield') || progMatch('brownfields') || progMatch('bcp')) ptCandidates.push(10);
+    if (progMatch('smbrp') || progMatch('investigation') || progMatch('tiered permit') || progMatch('spill') || progMatch('er')) ptCandidates.push(10);
+    if (progMatch('cof')) ptCandidates.push(5);
+    if (ptCandidates.length > 0) progTypeDed = Math.max.apply(null, ptCandidates);
+    // Detect floor bumps: NPL sites are floored at 70, contamination-program sites at 51.
+    // When the sum of known components is less than the applicable floor, the gap is a
+    // "minimum floor" effect — not compliance history. Label it separately so a SEMS-only
+    // refinery with 3 programs (+38) doesn't show more "Compliance history" than a 4-source
+    // confirmed NPL flagship site (+57) just because the floor raised both to 70.
+    var isNpl = progMatch('npl') || progMatch('federal superfund') || progMatch('national priorities list');
+    var isContamSite = !isNpl && (progMatch('sems') || progMatch('cerclis') || progMatch('kcsl')
+      || progMatch('known contaminated sites') || progMatch('known contamination') || progMatch('state response'));
+    var floorScore = isNpl ? 70 : (isContamSite ? 50 : 0);
+    var knownComponents = naicsDed + progDed + progTypeDed;
+    var floorDed = (floorScore > 0 && score >= floorScore && knownComponents < floorScore)
+      ? (floorScore - knownComponents) : 0;
+    var violDed = Math.max(0, remaining - naicsDed - progDed - progTypeDed - floorDed);
+    if (floorDed > 0) {
+      var floorLabel = isNpl
+        ? '<abbr title="NPL (National Priorities List) sites are floored at a minimum risk score of 70. Active Superfund listing means contamination has been confirmed at federal level.">NPL site minimum</abbr> (+' + floorDed + ')'
+        : '<abbr title="Contamination-designated sites (SEMS/CERCLIS/KCSL) carry a minimum risk floor because confirmed or investigated contamination makes them RECs by definition.">Contamination site minimum</abbr> (+' + floorDed + ')';
+      factors.push({ label: floorLabel, color: '#b91c1c', pts: floorDed });
+    }
+    if (violDed > 0) {
+      var violLabel = f.violation_count > 0 ? 'Violations (+' + violDed + ')' : '<abbr title="Historical EPA monitoring or enforcement activity. May not appear as formal violations in this database.">Compliance history</abbr> (+' + violDed + ')';
+      factors.push({ label: violLabel, color: '#dc2626', pts: violDed });
+    }
+    if (progTypeDed > 0) factors.push({ label: 'Contamination program (+' + progTypeDed + ')', color: '#9333ea', pts: progTypeDed });
+    if (naicsDed > 0) {
+      var tierName = f.naics_tier === 1 ? 'High' : f.naics_tier === 2 ? 'Moderate' : 'Low';
+      factors.push({ label: tierName + '-risk industry (+' + naicsDed + ')', color: '#d97706', pts: naicsDed });
+    }
+    if (progDed > 0) factors.push({ label: f.program_count + ' programs (+' + progDed + ')', color: '#6366f1', pts: progDed });
+    if (remaining === 0) factors.push({ label: 'No risk factors', color: '#059669', pts: 0 });
+
+    var barHtml = '';
+    factors.forEach(function(fac) {
+      if (fac.pts > 0) barHtml += '<span style="width:' + fac.pts + '%;background:' + fac.color + '"></span>';
+    });
+    if ((100 - score) > 0) barHtml += '<span style="width:' + (100 - score) + '%;background:#059669"></span>';
+    document.getElementById('sb-bar').innerHTML = barHtml;
+
+    var itemsHtml = '';
+    factors.forEach(function(fac) {
+      itemsHtml += '<span class="sb-item"><span class="sb-dot" style="background:' + fac.color + '"></span>' + fac.label + '</span>';
+    });
+    if (score < 100) itemsHtml += '<span class="sb-item"><span class="sb-dot" style="background:#059669"></span>No additional risk factors (' + (100 - score) + ' pts headroom)</span>';
+    document.getElementById('sb-items').innerHTML = itemsHtml;
+    sbEl.classList.remove('hidden');
+  } else {
+    sbEl.classList.add('hidden');
+  }
+
+  drawer.classList.add('open');
+  overlay.classList.add('open');
+
+  var tbody = document.getElementById('drawer-violations-body');
+  document.getElementById('drawer-violation-count').textContent = '';
+  tbody.innerHTML = '<tr><td colspan="4" class="loading-cell"><div class="spinner" style="display:inline-block;vertical-align:middle;margin-right:6px"></div> Loading...</td></tr>';
+
+  try {
+    var vioUrl = f.canonical_id
+      ? API + '/unified/facilities/' + encodeURIComponent(f.canonical_id) + '/violations?limit=50'
+      : API + '/facilities/' + encodeURIComponent(f.source) + '/' + encodeURIComponent(f.source_id) + '/violations?limit=50';
+    var res = await fetch(vioUrl);
+    if (!res.ok) {
+      // 404 means the facility has no violations record (stale unified table or
+      // unknown id) — show neutral message rather than a red error.
+      // Only treat 5xx as a genuine load failure.
+      if (res.status >= 500) throw new Error('Server error');
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">No violations on record</td></tr>';
+    } else {
+      var data = await res.json();
+      document.getElementById('drawer-violation-count').textContent = '(' + data.total + ')';
+      // Sync score breakdown label with live violation count (CIV-760).
+      // The score breakdown renders before this async fetch using f.violation_count
+      // (from the search result). If the live count differs — e.g. when the scoring
+      // table is stale or entity resolution changed canonical groups — the label
+      // "Violations (+Y)" may be wrong.  Fix it in-place so the drawer is self-consistent.
+      var sbItems = document.getElementById('sb-items');
+      if (sbItems && violDed > 0) {
+        if (data.total === 0 && (f.violation_count || 0) > 0) {
+          // Live count is 0 but label says "Violations" — correct to "Compliance history"
+          sbItems.innerHTML = sbItems.innerHTML.replace(
+            /Violations \(\+(\d+)\)/g,
+            '<abbr title="Historical EPA monitoring or enforcement activity. May not appear as formal violations in this database.">Compliance history</abbr> (+$1)'
+          );
+        } else if (data.total > 0 && (f.violation_count || 0) === 0) {
+          // Live count > 0 but label says "Compliance history" — correct to "Violations"
+          var abbr_re = /<abbr[^>]*>Compliance history<\/abbr> \(\+(\d+)\)/g;
+          sbItems.innerHTML = sbItems.innerHTML.replace(abbr_re, 'Violations (+$1)');
+        }
+      }
+      if (!data.items || data.items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">No violations on record</td></tr>';
+      } else {
+        var vhtml = '';
+        for (var i = 0; i < data.items.length; i++) {
+          var v = data.items[i];
+          var vStatus = _cleanStatus(v.status);
+          var stClass = _statusClass(v.status);
+          var vDesc = cleanViolationDesc(v);
+          var cfr = (v.cfr_summary || '').trim();
+          var descHtml;
+          if (cfr && vDesc && vDesc !== cfr) {
+            // Show plain-language summary as primary; raw codes as secondary detail
+            descHtml = buildDescHtml(cfr, i) + '<br><span style="color:var(--text-muted);font-size:0.72rem">' + buildDescHtml(vDesc, i + 1000) + '</span>';
+          } else if (cfr) {
+            descHtml = buildDescHtml(cfr, i);
+          } else if (vDesc) {
+            descHtml = buildDescHtml(vDesc, i);
+          } else {
+            // Synthesize a fallback description from available fields rather than
+            // showing a generic "Not provided in source data" placeholder.
+            var synthParts = [];
+            var srcLabel = _sourceName(v.facility_source);
+            if (srcLabel) synthParts.push(srcLabel);
+            var vType = cleanViolationType(v);
+            if (vType && vType !== 'N/A') synthParts.push(vType + ' violation');
+            var progArea = (v.program_area || '').trim();
+            if (progArea && progArea !== vType) synthParts.push(progArea);
+            if (synthParts.length > 0) {
+              var synthText = synthParts.join(' \u2014 ');
+              descHtml = '<span style="color:var(--text-muted);font-style:italic">' + escHtml(synthText) + '</span>';
+            } else {
+              descHtml = '<span style="color:var(--text-muted)">\u2014</span>';
+            }
+          }
+          var vdateHtml = v.violation_date
+            ? escHtml(v.violation_date)
+            : '<span style="color:var(--text-muted);font-style:italic" title="Date not provided by source agency">Not reported</span>';
+          vhtml += '<tr><td style="white-space:nowrap">' + vdateHtml
+            + '</td><td>' + escHtml(cleanViolationType(v))
+            + '</td><td class="desc-cell">' + descHtml
+            + '</td><td class="' + stClass + '">' + escHtml(vStatus) + '</td></tr>';
+        }
+        tbody.innerHTML = vhtml;
+      }
+    }
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="4" class="error-cell">Could not load violations</td></tr>';
+  }
+
+  // Source verification links — fetch all citations from unified detail if available
+  var srcLinksContainer = document.getElementById('drawer-source-links');
+  function _renderSrcLinks(citations) {
+    while (srcLinksContainer.firstChild) srcLinksContainer.removeChild(srcLinksContainer.firstChild);
+    var rendered = 0;
+    var seenUrls = {};
+    if (citations && citations.length > 0) {
+      for (var ci = 0; ci < citations.length; ci++) {
+        var cit = citations[ci];
+        if (!cit.source_url) continue;
+        if (seenUrls[cit.source_url]) continue;
+        seenUrls[cit.source_url] = true;
+        var a = document.createElement('a');
+        a.className = 'drawer-source-link';
+        a.href = cit.source_url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = _sourceLinkLabel(cit.source, cit.source_url);
+        srcLinksContainer.appendChild(a);
+        rendered++;
+      }
+    }
+    if (rendered === 0) {
+      var fallbackUrl = _sourceUrl(f.source, f.source_id, f.name);
+      if (fallbackUrl) {
+        var a = document.createElement('a');
+        a.className = 'drawer-source-link';
+        a.href = fallbackUrl;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = _sourceLinkLabel(f.source, fallbackUrl);
+        srcLinksContainer.appendChild(a);
+      }
+    }
+  }
+  if (f.canonical_id) {
+    try {
+      var detailRes = await fetch(API + '/unified/facilities/' + encodeURIComponent(f.canonical_id));
+      if (detailRes.ok) {
+        var detailData = await detailRes.json();
+        _renderSrcLinks(detailData.source_citations || []);
+      } else {
+        _renderSrcLinks([]);
+      }
+    } catch (e) {
+      _renderSrcLinks([]);
+    }
+  } else {
+    _renderSrcLinks([]);
+  }
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+}
+
+function _exportParams(withAddress) {
+  // Return the location query string fragment for export URLs.
+  // Always use lat/lon from the current search center (CIV-511) so the PDF/CSV
+  // export uses exactly the same center point as the dashboard search.
+  // Re-geocoding the address in a separate HTTP request can return slightly
+  // different coordinates and produce a different facility list.
+  // Pass address as a display hint so the PDF shows the address, not raw coords
+  // (CIV-353). When no currentCenter is available, fall back to address string.
+  // withAddress defaults to true; pass false for /search (CSV) which rejects
+  // address alongside lat/lon (CIV-528).
+  if (withAddress === undefined) withAddress = true;
+  if (currentCenter && currentCenter.lat != null && currentCenter.lon != null) {
+    var params = 'lat=' + currentCenter.lat + '&lon=' + currentCenter.lon;
+    if (withAddress) {
+      // Use the user's original typed address (currentAddress) as the display hint so
+      // the PDF "Site:" line shows what the user searched for, not the geocoder's
+      // matched street. The geocoded coords already provide location accuracy (CIV-646).
+      var displayAddr = currentAddress || currentCenter.matched_address;
+      if (displayAddr) {
+        params += '&address=' + encodeURIComponent(displayAddr);
+      }
+    }
+    return params;
+  }
+  return 'address=' + encodeURIComponent(currentAddress);
+}
+
+async function exportReport() {
+  if (!currentAddress) return;
+  var btn = document.getElementById('btn-export');
+  var savedChildren = Array.from(btn.childNodes).map(function(n) { return n.cloneNode(true); });
+  btn.textContent = 'Generating\u2026';
+  btn.disabled = true;
+  try {
+    var pdfSort = (currentSortBy && currentSortBy !== 'distance') ? currentSortBy : 'risk';
+    var url = API + '/reports/screening?' + _exportParams() + '&radius=' + currentRadius + '&format=pdf&sort_by=' + pdfSort;
+    var resp = await fetch(url);
+    if (!resp.ok) throw new Error('PDF generation failed');
+    var blob = await resp.blob();
+    var blobUrl = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = blobUrl;
+    var slug = currentAddress.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 50);
+    a.download = 'enviolations-screening-' + slug + '.pdf';
+    a.click();
+    URL.revokeObjectURL(blobUrl);
+  } catch (e) {
+    alert('Failed to generate PDF. Please try again.');
+  } finally {
+    btn.textContent = '';
+    savedChildren.forEach(function(n) { btn.appendChild(n); });
+    btn.disabled = false;
+  }
+}
+
+function exportCsv() {
+  if (!currentAddress) return;
+  var nameFilter = document.getElementById('name-filter').value.trim();
+  // The API returns all results when format=csv (no pagination limit applied).
+  // Include the same filters as the current on-screen view (program, sort, name).
+  // The _t timestamp busts any browser or proxy cache so a fresh export is always served.
+  var url = API + '/search?' + _exportParams(false) + '&radius=' + currentRadius + '&format=csv&_t=' + Date.now();
+  if (nameFilter) url += '&name=' + encodeURIComponent(nameFilter);
+  if (activeProgram && activeProgram !== 'all') url += '&program=' + encodeURIComponent(activeProgram);
+  if (hideScoreZero) url += '&min_score=1';
+  if (currentSortBy === 'violations') url += '&order_by=violation_count&order_dir=desc';
+  else if (currentSortBy === 'risk') url += '&order_by=risk_score&order_dir=desc';
+  else if (currentSortBy === 'name') url += '&order_by=name&order_dir=asc';
+  if (searchResultsApiTotal > 5000) {
+    if (!window.confirm('Exporting ' + searchResultsApiTotal.toLocaleString() + ' facilities as CSV. Large exports may take a moment. Continue?')) return;
+  } else if (searchResultsApiTotal > 1000) {
+    alert('Exporting all ' + searchResultsApiTotal.toLocaleString() + ' facilities as CSV.');
+  }
+  window.open(url, '_blank');
+}
+
+/* ── Helpers ── */
+
+function _sourceUrl(source, sourceId, name) {
+  if (source === 'epa_echo') return 'https://echo.epa.gov/detailed-facility-report?fid=' + encodeURIComponent(sourceId);
+  if (source === 'epa_caa') return 'https://echo.epa.gov/detailed-facility-report?fid=' + encodeURIComponent(sourceId) + '&sys=AIR';
+  if (source === 'epa_rcra') return 'https://echo.epa.gov/detailed-facility-report?fid=' + encodeURIComponent(sourceId) + '&sys=RCRA';
+  if (source === 'epa_sdwa') return 'https://echo.epa.gov/detailed-facility-report?fid=' + encodeURIComponent(sourceId);
+  if (source === 'epa_sems') return 'https://echo.epa.gov/detailed-facility-report?fid=' + encodeURIComponent(sourceId) + '&sys=SFM';
+  if (source && source.startsWith('epa_')) return 'https://echo.epa.gov/detailed-facility-report?fid=' + encodeURIComponent(sourceId);
+  if (source === 'tceq') {
+    if (name) return 'https://echo.epa.gov/facilities/facility-search/results?search=advanced&name=' + encodeURIComponent(name) + '&state=TX';
+    return 'https://echo.epa.gov/facilities/facility-search/results?search=advanced&state=TX';
+  }
+  if (source === 'ny_dec') {
+    if (sourceId && sourceId.startsWith('rem-')) {
+      var programNum = sourceId.slice(4);
+      if (programNum) return 'https://www.dec.ny.gov/cfmx/extapps/derexternal/index.cfm?pageid=3&programCode=ERASR&keyId=' + encodeURIComponent(programNum);
+      return 'https://data.ny.gov/Energy-Environment/Environmental-Remediation-Sites/c6ci-rzpg';
+    }
+    if (sourceId && sourceId.startsWith('sw-')) return 'https://data.ny.gov/Energy-Environment/Solid-Waste-Management-Facilities/2fni-raj8';
+    if (sourceId && sourceId.startsWith('oc-')) {
+      var caseNum = sourceId.slice(3);
+      if (caseNum) return 'https://www.dec.ny.gov/cfmx/extapps/derexternal/index.cfm?pageid=4&programid=0&keyword=' + encodeURIComponent(caseNum);
+      return 'https://www.dec.ny.gov/cfmx/extapps/derexternal/index.cfm?pageid=4';
+    }
+    return 'https://data.ny.gov/browse?q=DEC&sortBy=relevance&tags=environment';
+  }
+  if (source === 'ny_dec_gis') {
+    var gisBase = 'https://gisservices.dec.ny.gov/arcgis/rest/services/dil_permits_and_regs/MapServer';
+    var prefixLayer = {'pbs-':21,'cbs-':23,'mosf-':22,'air-':3,'airv-':4,'airs-':5,'landfill-':12,'hwgen-':6,'hwtsd-':2,'spdes-':18,'msgp-':20,'mine-':24};
+    if (sourceId) {
+      var keys = Object.keys(prefixLayer);
+      for (var pi = 0; pi < keys.length; pi++) {
+        if (sourceId.startsWith(keys[pi])) return gisBase + '/' + prefixLayer[keys[pi]];
+      }
+    }
+    return gisBase;
+  }
+  if (source === 'pa_dep') {
+    if (sourceId && sourceId.startsWith('eis-')) return 'https://www.ahs.dep.pa.gov/eFACTSWeb/';
+    if (sourceId && sourceId.startsWith('sdwa-')) return 'https://www.padata.state.pa.us/PASAFE/pubView.aspx';
+    if (sourceId && sourceId.startsWith('well-')) return 'https://www.paoilandgasreporting.state.pa.us/publicreports/';
+    return 'https://data.pa.gov/Environment-Natural-Resources/';
+  }
+  if (source === 'ct_deep') {
+    if (sourceId && sourceId.startsWith('ust-')) {
+      var facilityId = sourceId.slice(4);
+      if (facilityId) return 'https://listsearch.ct.gov/USTsearch/USTDetails.asp?FacilityID=' + encodeURIComponent(facilityId);
+      return 'https://portal.ct.gov/DEEP/Petroleum/Underground-Storage-Tanks';
+    }
+    if (sourceId && sourceId.startsWith('rem-')) return 'https://portal.ct.gov/DEEP/Remediation--Site-Clean-Up/';
+    return 'https://portal.ct.gov/DEEP/';
+  }
+  if (source === 'fl_dep') {
+    if (sourceId && sourceId.startsWith('eric-')) {
+      var ericId = sourceId.slice(5);
+      if (ericId) return 'https://prodenv.dep.state.fl.us/DepEric/create?programID=' + encodeURIComponent(ericId);
+      return 'https://prodenv.dep.state.fl.us/DepEric/searchHome.action';
+    }
+    if (sourceId && sourceId.startsWith('wafr-')) return 'https://ca.dep.state.fl.us/mapdirect/';
+    return 'https://prodenv.dep.state.fl.us/DepEric/searchHome.action';
+  }
+  if (source === 'la_deq') return 'https://www.deq.louisiana.gov/page/echo';
+  if (source === 'nj_dep') {
+    if (sourceId && sourceId.startsWith('njems-')) {
+      var siteId = sourceId.slice('njems-'.length);
+      if (siteId) return 'https://njems.nj.gov/DataMiner/Search/SearchBySite?SiteId=' + encodeURIComponent(siteId);
+    }
+    if (sourceId && sourceId.startsWith('kcsl-')) {
+      var piNumber = sourceId.slice('kcsl-'.length);
+      if (piNumber) return 'https://njems.nj.gov/DataMiner/Search/SearchBySite?SiteId=' + encodeURIComponent(piNumber);
+    }
+    return 'https://gisdata-njdep.opendata.arcgis.com/';
+  }
+  if (source === 'oh_epa') {
+    if (sourceId) {
+      var ohBase = 'https://geo.epa.ohio.gov/arcgis/rest/services';
+      var ohParams = 'outFields=*&f=html';
+      if (sourceId.startsWith('npdes-')) {
+        var v = encodeURIComponent(sourceId.substring(6));
+        if (v) return ohBase + '/Hosted/NPDES_SELECT_FACS/FeatureServer/0/query?where=ohio_epa_no+%3D+%27' + v + '%27&' + ohParams;
+      }
+      if (sourceId.startsWith('dmwm-')) {
+        var v = encodeURIComponent(sourceId.substring(5));
+        if (v) return ohBase + '/WasteMgmt/DMWM_Regulated_Facilities/MapServer/0/query?where=FP_PLACE_ID+%3D+' + v + '&' + ohParams;
+      }
+      if (sourceId.startsWith('derr-')) {
+        var v = encodeURIComponent(sourceId.substring(5));
+        if (v) return ohBase + '/Hosted/DERR_SITES_POINTS/FeatureServer/0/query?where=derr_id+%3D+' + v + '&' + ohParams;
+      }
+      if (sourceId.startsWith('spill-')) {
+        var v = encodeURIComponent(sourceId.substring(6));
+        if (v) return ohBase + '/EmergResponse/Spills2_OpenData/MapServer/0/query?where=casenumber+%3D+%27' + v + '%27&' + ohParams;
+      }
+    }
+    return 'https://geo.epa.ohio.gov/';
+  }
+  if (source === 'dc_doee') return 'https://doee.dc.gov/service/environmental-data';
+  if (source === 'co_cdphe') return 'https://cdphe.colorado.gov/environmental-data';
+  if (source === 'tn_tdec') return 'https://www.tn.gov/environment/program-areas/compliance.html';
+  if (source === 'wa_ecy') return 'https://apps.ecology.wa.gov/facilityregulation/';
+  if (source === 'ne_dee') return 'https://dee.nebraska.gov/environmental-data';
+  if (source === 'mo_dnr') return 'https://dnr.mo.gov/environmentaldata/';
+  if (source === 'id_deq') return 'https://www.deq.idaho.gov/data/';
+  if (source === 'va_deq') return 'https://www.deq.virginia.gov/permits-regulations/permits/data';
+  if (source === 'ia_dnr') return 'https://www.iowadnr.gov/environmental-protection/regulatory-compliance';
+  if (source === 'ks_kdhe') return 'https://www.kdhe.ks.gov/1288/KDHE-Applications';
+  if (source === 'ok_deq') return 'https://www.deq.ok.gov/compliance-data';
+  if (source === 'or_deq') return 'https://www.oregon.gov/deq/permits/Pages/default.aspx';
+  if (source === 'ar_deq') return 'https://www.adeq.state.ar.us/water/compliance/';
+  if (source === 'mi_egle') return 'https://www.michigan.gov/egle/maps-data';
+  if (source === 'wy_deq') return 'https://deq.wyoming.gov/environmental-data';
+  if (source === 'ky_dep') return 'https://eec.ky.gov/Environmental-Protection/Pages/default.aspx';
+  if (source === 'ut_deq') return 'https://deq.utah.gov/environmental-data';
+  if (source === 'nh_des') return 'https://www.des.nh.gov/data-and-information';
+  if (source === 'de_dnrec') return 'https://dnrec.delaware.gov/environmental-data';
+  if (source === 'ak_dec') return 'https://dec.alaska.gov/eh/environmental-data/';
+  if (source === 'vt_dec') return 'https://dec.vermont.gov/environmental-data';
+  if (source === 'me_dep') return 'https://www.maine.gov/dep/data/';
+  if (source === 'wi_dnr') return 'https://dnr.wisconsin.gov/topic/Permits/envReport.html';
+  if (source === 'sd_danr') return 'https://danr.sd.gov/environmental-data';
+  if (source === 'al_adem') return 'https://adem.alabama.gov/programs/permits/envdata.cnt';
+  if (source === 'sc_dhec') return 'https://scdhec.gov/environment/environmental-data-reporting';
+  if (source === 'ma_dep') return 'https://www.mass.gov/orgs/department-of-environmental-protection';
+  if (source === 'wv_dep') return 'https://dep.wv.gov/environmental-data';
+  if (source === 'mt_deq') return 'https://deq.mt.gov/environmental-data';
+  if (source === 'nv_dep') return 'https://ndep.nv.gov/environmental-data';
+  if (source === 'nc_deq') {
+    if (sourceId && sourceId.startsWith('hw-')) {
+      var handlerId = sourceId.slice(3);
+      if (handlerId) return 'https://echo.epa.gov/detailed-facility-report?fid=' + encodeURIComponent(handlerId) + '&sys=RCRA';
+      return 'https://deq.nc.gov/about/divisions/waste-management/hazardous-waste';
+    }
+    if (sourceId && sourceId.startsWith('ust-')) return 'https://deq.nc.gov/about/divisions/waste-management/underground-storage-tanks';
+    if (sourceId && sourceId.startsWith('ast-')) return 'https://deq.nc.gov/about/divisions/waste-management/aboveground-storage-tanks';
+    if (sourceId && sourceId.startsWith('sso-')) return 'https://deq.nc.gov/about/divisions/water-resources/permitting/wastewater-compliance-reporting';
+    return 'https://deq.nc.gov/';
+  }
+  if (source === 'nd_deq') return 'https://deq.nd.gov/environmental-data';
+  if (source === 'nm_nmed') return 'https://www.env.nm.gov/environmental-data/';
+  if (source === 'md_mde') return 'https://mde.maryland.gov/programs/permits/Pages/default.aspx';
+  if (source === 'ga_epd') return 'https://epd.georgia.gov/data-explorer';
+  if (source === 'az_deq') return 'https://azdeq.gov/permits';
+  if (source === 'il_epa') return 'https://www2.illinois.gov/epa/topics/compliance-public-protection/Pages/default.aspx';
+  if (source === 'hi_doh') return 'https://health.hawaii.gov/shwb/environmental-data';
+  if (source === 'ri_dem') return 'https://www.dem.ri.gov/programs/emergencyresponse/data.php';
+  if (source === 'in_idem') return 'https://www.in.gov/idem/compliance/';
+  if (source === 'mn_pca') return 'https://www.pca.state.mn.us/data';
+  if (source === 'ms_mdeq') return 'https://www.mdeq.ms.gov/environmental-data/';
+  if (source === 'ca_dtsc') {
+    if (sourceId && sourceId.startsWith('cleanup-')) {
+      var siteCode = sourceId.slice(8);
+      if (siteCode) return 'https://www.envirostor.dtsc.ca.gov/public/detail?global_id=' + encodeURIComponent(siteCode);
+    }
+    if (sourceId && sourceId.startsWith('hazwaste-')) {
+      var epaId = sourceId.slice(9);
+      if (epaId) return 'https://echo.epa.gov/detailed-facility-report?fid=' + encodeURIComponent(epaId) + '&sys=RCRA';
+    }
+    return 'https://www.envirostor.dtsc.ca.gov/public/';
+  }
+  if (source === 'ca_geotracker') {
+    if (sourceId) return 'https://geotracker.waterboards.ca.gov/profile_report?global_id=' + encodeURIComponent(sourceId.replace(/ /g, ''));
+    return 'https://geotracker.waterboards.ca.gov/';
+  }
+  if (source === 'ca_waterboard') {
+    if (sourceId && sourceId.startsWith('ciwqs-wdid-')) {
+      var wdidVal = sourceId.slice(11).replace(/ /g, '');
+      if (wdidVal) return 'https://ciwqs.waterboards.ca.gov/ciwqs/readOnly/CiwqsReportServlet?inCommand=reset&reportName=RegdEntityByWDID&wdid=' + encodeURIComponent(wdidVal);
+    }
+    if (sourceId && sourceId.startsWith('ciwqs-')) {
+      var ciwqsId = sourceId.slice(6).replace(/ /g, '');
+      if (ciwqsId) return 'https://ciwqs.waterboards.ca.gov/ciwqs/readOnly/CiwqsReportServlet?inCommand=drilldownBySite&siteID=' + encodeURIComponent(ciwqsId);
+    }
+    if (sourceId && sourceId.startsWith('smarts-')) {
+      var wdid = sourceId.slice(7).replace(/ /g, '');
+      if (wdid) return 'https://geotracker.waterboards.ca.gov/profile_report?global_id=' + encodeURIComponent(wdid);
+    }
+    return 'https://www.waterboards.ca.gov/water_issues/programs/npdes/';
+  }
+  return null;
+}
+
+function _sourceName(source) {
+  var names = {
+    epa_echo: 'EPA ECHO', epa_rcra: 'EPA RCRAInfo', epa_caa: 'EPA ICIS-Air',
+    epa_sdwa: 'EPA SDWIS', epa_sems: 'EPA SEMS', tceq: 'TCEQ', ny_dec: 'NY Open Data',
+    pa_dep: 'PA Open Data', ct_deep: 'CT Open Data',
+    fl_dep: 'FL DEP', la_deq: 'LA DEQ',
+    ca_dtsc: 'CA DTSC EnviroStor', ca_waterboard: 'CA Water Board', ca_geotracker: 'CA GeoTracker',
+    nj_dep: 'NJ DEP', oh_epa: 'Ohio EPA', dc_doee: 'DC DOEE',
+    co_cdphe: 'CO CDPHE', tn_tdec: 'TN TDEC', wa_ecy: 'WA Ecology',
+    ne_dee: 'NE DEE', mo_dnr: 'MO DNR', id_deq: 'ID DEQ',
+    va_deq: 'VA DEQ', ia_dnr: 'IA DNR', ks_kdhe: 'KS KDHE',
+    ok_deq: 'OK DEQ', or_deq: 'OR DEQ', ar_deq: 'AR DEQ',
+    mi_egle: 'MI EGLE', wy_deq: 'WY DEQ', ky_dep: 'KY DEP',
+    ut_deq: 'UT DEQ', nh_des: 'NH DES', de_dnrec: 'DE DNREC',
+    ak_dec: 'AK DEC', vt_dec: 'VT DEC', me_dep: 'ME DEP',
+    wi_dnr: 'WI DNR', sd_danr: 'SD DANR', al_adem: 'AL ADEM',
+    sc_dhec: 'SC DHEC', ma_dep: 'MA DEP', wv_dep: 'WV DEP',
+    mt_deq: 'MT DEQ', nv_dep: 'NV DEP', nc_deq: 'NC DEQ',
+    nd_deq: 'ND DEQ', nm_nmed: 'NM NMED', md_mde: 'MD MDE',
+    ga_epd: 'GA EPD', az_deq: 'AZ DEQ', il_epa: 'IL EPA',
+    hi_doh: 'HI DOH', ri_dem: 'RI DEM',
+  };
+  return names[source] || (source || '').toUpperCase();
+}
+
+// Return human-readable link label for a source verification link.
+// When a state source (e.g. TCEQ) redirects through EPA ECHO search instead
+// of linking directly to a state portal, label the link accurately so users
+// know where they're going.
+// When a URL has a sys= parameter, append the subsystem name to distinguish
+// multiple EPA ECHO links (e.g. "View in EPA ECHO (RCRA)").
+function _sourceLinkLabel(source, url) {
+  if (url && url.indexOf('echo.epa.gov/facilities/facility-search') >= 0) {
+    return 'Search in EPA ECHO';
+  }
+  if (url && url.indexOf('echo.epa.gov') >= 0) {
+    var sysMap = { 'AIR': 'Air', 'RCRA': 'RCRA', 'SFM': 'Superfund', 'SDWA': 'Drinking Water', 'ICIS': 'ICIS' };
+    var sysMatch = url.match(/[?&]sys=([^&]+)/);
+    if (sysMatch) {
+      var sysCode = sysMatch[1].toUpperCase();
+      var sysLabel = sysMap[sysCode] || sysCode;
+      return 'View in EPA ECHO (' + sysLabel + ')';
+    }
+    return 'View in EPA ECHO';
+  }
+  return 'View in ' + _sourceName(source);
+}
+
+function _cleanStatus(status) {
+  if (!status || status === 'undefined' || status === 'null') return '\u2014';
+  return status;
+}
+function _statusClass(status) {
+  var s = _cleanStatus(status);
+  if (s === '\u2014' || s === 'Unknown' || s === 'N/A') return 'status-unknown';
+  var sl = s.toLowerCase();
+  if (sl.indexOf('resolved') >= 0 || sl.indexOf('closed') >= 0 || sl.indexOf('complian') >= 0 || sl === 'addressed' || sl.indexOf('return to') >= 0 || sl.indexOf('no violation') >= 0) return 'status-resolved';
+  if (sl.indexOf('open') >= 0 || sl === 'active' || sl.indexOf('in review') >= 0 || sl.indexOf('pending') >= 0 || sl.indexOf('referred') >= 0 || sl.indexOf('violation') >= 0 || sl.indexOf('unresolved') >= 0 || sl.indexOf('significant') >= 0 || sl.indexOf('unaddressed') >= 0 || sl.indexOf('in violation') >= 0 || sl.indexOf('non-compliance') >= 0 || sl.indexOf('enforcement') >= 0) return 'status-open';
+  return '';
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function escAttr(s) {
+  return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+function showLoading() {
+  document.getElementById('map-loading').classList.remove('hidden');
+  document.getElementById('results-loading').classList.remove('hidden');
+  document.getElementById('btn-search').disabled = true;
+}
+function hideLoading() {
+  document.getElementById('map-loading').classList.add('hidden');
+  document.getElementById('results-loading').classList.add('hidden');
+  document.getElementById('btn-search').disabled = false;
+}
+function hideAllStates() {
+  document.getElementById('empty-state').classList.add('hidden');
+  document.getElementById('error-state').classList.add('hidden');
+  document.getElementById('results-content').classList.add('hidden');
+  document.getElementById('results-loading').classList.add('hidden');
+}
+function showError(msg, hints) {
+  hideAllStates();
+  document.getElementById('error-state').classList.remove('hidden');
+  document.getElementById('error-message').textContent = msg;
+  var hintsEl = document.getElementById('geocode-hints');
+  hintsEl.textContent = '';
+  if (hints && hints.length) {
+    var label = document.createElement('p');
+    label.textContent = 'Try instead:';
+    hintsEl.appendChild(label);
+    var ul = document.createElement('ul');
+    hints.forEach(function(hint) {
+      var li = document.createElement('li');
+      // "Search by city/zip instead: La Marque, TX 77568" -> make city/zip clickable
+      var cityZipMatch = hint.match(/^Search by city\/zip instead: (.+)$/);
+      if (cityZipMatch) {
+        li.textContent = 'Search by city/zip instead: ';
+        var btn = document.createElement('button');
+        btn.className = 'hint-action';
+        btn.textContent = cityZipMatch[1];
+        (function(q) { btn.addEventListener('click', function() { quickSearch(q, currentRadius); }); })(cityZipMatch[1]);
+        li.appendChild(btn);
+      } else {
+        li.textContent = hint;
+      }
+      ul.appendChild(li);
+    });
+    hintsEl.appendChild(ul);
+    // Add coordinate search note if not already in hints
+    var coordNote = document.createElement('p');
+    coordNote.style.marginTop = '0.6rem';
+    coordNote.textContent = 'You can also enter GPS coordinates: e.g. "29.376, -94.912"';
+    coordNote.style.fontSize = '0.78rem';
+    coordNote.style.color = 'var(--text-muted)';
+    coordNote.style.fontWeight = 'normal';
+    hintsEl.appendChild(coordNote);
+    hintsEl.classList.remove('hidden');
+  } else {
+    hintsEl.classList.add('hidden');
+  }
+  if (markersLayer) markersLayer.clearLayers();
+  if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
+  if (centerMarker) { map.removeLayer(centerMarker); centerMarker = null; }
+  // Always pan the map to the approximate area of the failed address.
+  // Without this, the map stays on the previous search location (confusing).
+  if (map) {
+    var stateMatch = (currentAddress || '').match(/\b([A-Za-z]{2})\b\s*(?:\d{5}(?:-\d{4})?)?\s*$/);
+    var stateFallback = stateMatch && STATE_CENTERS[stateMatch[1].toUpperCase()];
+    if (stateFallback) {
+      map.setView(stateFallback, 8);
+    } else {
+      map.setView([39.8, -98.5], 5);
+    }
+  }
+}
+
+/* ── Recent searches ── */
+
+function loadRecentSearches() {
+  try {
+    var items = JSON.parse(sessionStorage.getItem('enviolations_recent') || '[]');
+    var el = document.getElementById('recent-searches');
+    if (!items.length) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    var html = '<span class="recent-label">Recent:</span>';
+    for (var i = 0; i < Math.min(items.length, 5); i++) {
+      var s = items[i];
+      var label = s.address.length > 35 ? s.address.substring(0, 35) + '...' : s.address;
+      html += '<button class="recent-chip" onclick="quickSearch(\'' + escAttr(s.address) + '\',' + s.radius + ')">' + escHtml(label) + '</button>';
+    }
+    el.innerHTML = html;
+  } catch (e) {}
+}
+
+function saveSearch(address, radius) {
+  try {
+    var items = JSON.parse(sessionStorage.getItem('enviolations_recent') || '[]');
+    items = items.filter(function(s) { return s.address !== address; });
+    items.unshift({ address: address, radius: radius, ts: Date.now() });
+    if (items.length > MAX_RECENT) items = items.slice(0, MAX_RECENT);
+    sessionStorage.setItem('enviolations_recent', JSON.stringify(items));
+    loadRecentSearches();
+  } catch (e) {}
+}
+
+function quickSearch(address, radius) {
+  document.getElementById('search-input').value = address;
+  document.getElementById('radius-select').value = String(radius);
+  performSearch();
+}
+
+/* ── URL hash state ── */
+
+function updateHash(address, radius) {
+  history.replaceState(null, '', '#address=' + encodeURIComponent(address) + '&radius=' + radius);
+}
+
+var _hashTimer = null;
+function parseHash() {
+  var hash = location.hash.slice(1);
+  if (!hash) {
+    // Pre-load demo search so the page opens with results; mark as demo so
+    // failures fall back to the welcome empty state rather than showing an error
+    _isDemoSearch = true;
+    quickSearch('600 Travis St, Houston, TX 77002', 1);
+    return;
+  }
+  var params = new URLSearchParams(hash);
+  var address = params.get('address');
+  var radius = params.get('radius');
+  if (address) {
+    document.getElementById('search-input').value = address;
+    if (radius) document.getElementById('radius-select').value = radius;
+    // Debounce to prevent race conditions with rapid hash changes
+    if (_hashTimer) clearTimeout(_hashTimer);
+    _hashTimer = setTimeout(function() { _hashTimer = null; performSearch(); }, 150);
+  }
+}
+
+/* ── Boot ── */
+document.addEventListener('DOMContentLoaded', init);
+window.addEventListener('hashchange', parseHash);
+</script>
+</body>
+</html>
