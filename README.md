@@ -4,6 +4,11 @@ A Python framework for aggregating fragmented government environmental complianc
 
 This is an archived extraction. The code originated as part of a larger product that was discontinued in April 2026. The connector framework, entity resolution, and scoring methodology are the parts that may be useful to others — published as a library so the work isn't lost.
 
+> **Not for regulated environmental due diligence (Phase I ESAs), compliance attestations, lending, insurance, or any decision with material legal or financial consequences.** See [Disclaimer](#disclaimer) at the bottom.
+
+A pre-computed snapshot of the data this code produces is also published as a Hugging Face dataset:
+**https://huggingface.co/datasets/claysheaff/enviolations** — 7.3M facilities, 1.1M violations, ~715 MB of Parquet files. CC0 licensed. Same caveats apply.
+
 ## What it does
 
 Government environmental data is fragmented across EPA programs (ECHO, SDWA, RCRA, CAA, SEMS) and 50+ state agencies, each with their own API conventions, schemas, and quirks. This library:
@@ -121,6 +126,22 @@ Caveats observed during the original product's run, surfaced here for anyone usi
 ## Status
 
 Archived. Extracted from a discontinued product. No active maintenance. Pull requests probably won't be reviewed. Fork freely.
+
+## Disclaimer
+
+This software and any data it produces are provided **AS IS**, without warranty of any kind, express or implied. The library aggregates data from public US federal and state environmental agency sources; transcription, geocoding, normalization, and entity-resolution errors are possible and have been observed (see "Known issues" above).
+
+**Do NOT use this for:**
+- ASTM E1527-21 Phase I Environmental Site Assessments or any other regulated environmental due-diligence work product
+- Regulatory compliance attestations or filings
+- Lending decisions, insurance underwriting, or actuarial analysis
+- Legal proceedings, real estate transactions, or any decision with material legal or financial consequences
+
+For authoritative facility records, **contact the source agency directly** (EPA via [echo.epa.gov](https://echo.epa.gov/), or the relevant state environmental agency).
+
+**Takedown / correction requests:** open an issue on this repository. This is an archived project with no active maintenance, but issues will be reviewed periodically.
+
+The author makes no representation that any specific facility, violation, or score reflects current compliance status, and disclaims all liability for decisions made in reliance on this software or its output.
 
 ## License
 
