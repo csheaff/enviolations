@@ -1,6 +1,6 @@
 # enviolations
 
-A Python framework for aggregating fragmented government environmental compliance data into a normalized SQLite database, with cross-source entity resolution and risk scoring.
+A Python library for aggregating fragmented US government environmental compliance data — **74 connectors, 7.3M facilities, 1.1M violations** — normalized into SQLite with cross-source entity resolution and an explainable 0–100 risk score per facility.
 
 > **Not for regulated environmental due diligence (Phase I ESAs), compliance attestations, lending, insurance, or any decision with material legal or financial consequences.** See [Disclaimer](#disclaimer) at the bottom.
 
@@ -38,9 +38,15 @@ Full source list: see `enviolations/sources/`.
 
 ## Reference API and dashboard
 
-`examples/` contains a working FastAPI server and single-page web dashboard built on top of the library. They're a starting point — fork and adapt freely.
+`examples/` contains a working FastAPI server and single-page web dashboard built on top of the library — a starting point, fork and adapt freely.
 
-![Dashboard search results — Houston, TX](examples/dashboard/screenshots/02-search-results.png)
+![Dashboard search results — 150 facilities within 1 mile of a Houston, TX address](examples/dashboard/screenshots/02-search-results.png)
+
+*Radius search around a Houston address — 150 facilities, summary tiles by risk level, exportable as PDF or CSV.*
+
+![Facility detail with deterministic score breakdown](examples/dashboard/screenshots/03-facility-detail.png)
+
+*Facility detail. The 0–100 score is fully explainable: every point traces to a documented rule (compliance history, industry NAICS tier, program count), not an opaque model.*
 
 ```bash
 pip install -r requirements.txt -r examples/requirements.txt
@@ -49,7 +55,7 @@ uvicorn examples.api.app:create_app --factory --port 8000
 # API docs:  http://localhost:8000/docs
 ```
 
-See [`examples/README.md`](examples/README.md) for the full layout, endpoints, screenshots, and architecture notes.
+See [`examples/README.md`](examples/README.md) for the full layout, endpoints, and architecture notes.
 
 ## Requirements
 
