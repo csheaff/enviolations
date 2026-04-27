@@ -121,7 +121,7 @@ def _extract_search_params(request: Request) -> str | None:
     if request.url.path not in _SEARCH_ENDPOINTS:
         return None
 
-    from ..geo import _extract_state
+    from enviolations.geo import _extract_state
 
     params: dict = {}
 

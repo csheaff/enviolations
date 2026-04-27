@@ -34,3 +34,6 @@ data/
 # Env
 .env
 .env.local
+
+# Local dev tooling
+.claude/

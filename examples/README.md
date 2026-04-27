@@ -2,6 +2,20 @@
 
 This directory contains a working reference implementation of an HTTP API and web dashboard built on top of the `enviolations` library. Treat it as a starting point, not a finished product — fork and adapt freely.
 
+## Screenshots
+
+Search results for a Houston, TX address — 150 facilities within 1 mile, summary tiles by risk level, list with source badges and risk scores, exportable as PDF or CSV.
+
+![Search results](dashboard/screenshots/02-search-results.png)
+
+Facility detail with the **Compliance Score Breakdown** — exactly how the 0–100 score for this facility was assembled (compliance history, industry risk tier, program count). Cross-references to the source agency (EPA ECHO, TCEQ).
+
+![Facility detail](dashboard/screenshots/03-facility-detail.png)
+
+Empty state on first load.
+
+![Empty state](dashboard/screenshots/01-landing.png)
+
 ## What's here
 
 ```

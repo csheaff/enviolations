@@ -40,6 +40,8 @@ Full source list: see `enviolations/sources/`.
 
 `examples/` contains a working FastAPI server and single-page web dashboard built on top of the library. They're a starting point — fork and adapt freely.
 
+![Dashboard search results — Houston, TX](examples/dashboard/screenshots/02-search-results.png)
+
 ```bash
 pip install -r requirements.txt -r examples/requirements.txt
 uvicorn examples.api.app:create_app --factory --port 8000
@@ -47,7 +49,7 @@ uvicorn examples.api.app:create_app --factory --port 8000
 # API docs:  http://localhost:8000/docs
 ```
 
-See `examples/README.md` for the full layout, endpoints, and architecture notes.
+See [`examples/README.md`](examples/README.md) for the full layout, endpoints, screenshots, and architecture notes.
 
 ## Requirements
 

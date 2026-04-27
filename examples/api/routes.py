@@ -781,10 +781,10 @@ def search_facilities(
     # Extract center state for state_mismatch flagging
     center_state = None
     if matched_address:
-        from ..geo import _extract_state
+        from enviolations.geo import _extract_state
         center_state = _extract_state(matched_address)
     if center_state is None:
-        from ..geo import reverse_geocode_state
+        from enviolations.geo import reverse_geocode_state
         center_state = reverse_geocode_state(center_lat, center_lon)
     results = services.search_radius(
         conn, center_lat, center_lon, radius, center_state=center_state,
@@ -1004,10 +1004,10 @@ def search_violations(
     # Extract center state for state_mismatch filtering
     center_state = None
     if matched_address:
-        from ..geo import _extract_state
+        from enviolations.geo import _extract_state
         center_state = _extract_state(matched_address)
     if center_state is None:
-        from ..geo import reverse_geocode_state
+        from enviolations.geo import reverse_geocode_state
         center_state = reverse_geocode_state(center_lat, center_lon)
 
     # Use shared radius search for facility lookup
